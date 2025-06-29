@@ -365,6 +365,19 @@ footer {
   box-shadow: 0 0 15px rgba(255, 34, 34, 0.5);
 }
 
+.floating-phone {
+  font-size: 3rem;
+  text-align: center;
+  animation: phoneFloat 2s ease-in-out infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes phoneFloat {
+  0% { transform: translateY(0); opacity: 0.8; }
+  50% { transform: translateY(-12px); opacity: 1; }
+  100% { transform: translateY(0); opacity: 0.8; }
+}
+
 
 
 
