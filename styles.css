@@ -173,6 +173,10 @@ footer {
   margin: 0 auto;
   color: white;
   text-align: center;
+  .btn-primary,
+.btn-secondary {
+  margin-top: 0.5rem;
+
 }
 
 @media (max-width: 600px) {
