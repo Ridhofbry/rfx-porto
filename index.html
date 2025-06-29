@@ -88,6 +88,7 @@
   </footer>
 <script>
   const bars = document.querySelectorAll('.bar');
+  const skillsSection = document.querySelector('.skills');
 
   const observer = new IntersectionObserver(entries => {
     entries.forEach(entry => {
@@ -96,13 +97,13 @@
           const fill = bar.querySelector('.fill');
           fill.style.width = bar.dataset.fill;
         });
-        observer.disconnect();
+        observer.disconnect(); // animasi hanya sekali
       }
     });
   });
 
-  if (bars.length) {
-    observer.observe(bars[0].parentElement.parentElement); // observe <ul class="skills">
+  if (skillsSection) {
+    observer.observe(skillsSection);
   }
 </script>
 </body>
