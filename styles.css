@@ -167,16 +167,20 @@ footer {
 }
 
 .hero-content {
-  margin-bottom: 1.8rem;
   font-size: 1.1rem;
   max-width: 800px;
-  margin: 0 auto;
+  margin: 0 auto 1.8rem auto; /* margin bawah */
   color: white;
   text-align: center;
-  .btn-primary,
+}
+
+.hero-content p {
+  margin-bottom: 1.8rem;
+}
+
+.btn-primary,
 .btn-secondary {
   margin-top: 0.5rem;
-
 }
 
 @media (max-width: 600px) {
