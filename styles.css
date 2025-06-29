@@ -357,6 +357,13 @@ footer {
   transition: all 0.3s ease;
 }
 
+.portfolio-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.portfolio-card:hover {
+  transform: scale(1.03);
+  box-shadow: 0 0 15px rgba(255, 34, 34, 0.5);
+}
 
 
 
