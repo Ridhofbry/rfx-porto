@@ -64,5 +64,24 @@
       <p>&copy; 2025 Ridho Febriyansyah | RFX Visual</p>
     </div>
   </footer>
+<script>
+  const bars = document.querySelectorAll('.bar');
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        bars.forEach(bar => {
+          const fill = bar.querySelector('.fill');
+          fill.style.width = bar.dataset.fill;
+        });
+        observer.disconnect();
+      }
+    });
+  });
+
+  if (bars.length) {
+    observer.observe(bars[0].parentElement.parentElement); // observe <ul class="skills">
+  }
+</script>
 </body>
 </html>
