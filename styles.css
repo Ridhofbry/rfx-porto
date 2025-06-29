@@ -176,6 +176,11 @@ footer {
 
 .hero-content p {
   margin-bottom: 1.8rem;
+  text-transform: uppercase;
+  font-size: 1.1rem;
+  letter-spacing: 1px;
+  font-weight: 500;
+  color: #ccc;
 }
 
 .btn-primary,
@@ -242,7 +247,7 @@ footer {
   margin: 0.5rem auto;
  }
 
-}
+  }
 
 
 
