@@ -171,6 +171,7 @@ footer {
   margin: 0 auto;
   color: white;
   text-align: center;
+   padding: 2rem 1rem 3rem;
 }
 
 @media (max-width: 600px) {
