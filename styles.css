@@ -200,5 +200,11 @@ footer {
   border-radius: 6px;
   transition: width 1.5s ease-in-out;
 }
+.skills i {
+  margin-right: 8px;
+  color: var(--primary-color);
+  font-size: 1.1rem;
+  vertical-align: middle;
+}
 
 
