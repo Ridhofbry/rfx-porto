@@ -167,3 +167,17 @@ footer {
 .thumbnail:hover {
   transform: scale(1.05);
 }
+@media (max-width: 600px) {
+  .hero-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    width: 80%;
+    margin: 0.5rem 0;
+  }
+}
+
