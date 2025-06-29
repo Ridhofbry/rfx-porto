@@ -306,6 +306,23 @@ footer {
   pointer-events: none;
 }
 
+/* ==== SHAPE ABSTRAK TERANIMASI ==== */
+.floating-shape {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.08), transparent 70%);
+  animation: float 6s ease-in-out infinite;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Gerakan pelan naik-turun */
+@keyframes float {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-20px); }
+  100% { transform: translateY(0); }
+}
+
 
 
 
