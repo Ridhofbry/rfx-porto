@@ -167,12 +167,12 @@ footer {
 }
 
 .hero-content {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.8rem;
+  font-size: 1.1rem;
   max-width: 800px;
   margin: 0 auto;
   color: white;
   text-align: center;
-   padding: 2rem 1rem 3rem;
 }
 
 @media (max-width: 600px) {
