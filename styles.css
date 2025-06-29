@@ -140,3 +140,27 @@ footer {
   color: #aaa;
   font-size: 0.9rem;
 }
+.gallery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  justify-content: center;
+  padding: 2rem 0;
+}
+
+.gallery li {
+  list-style: none;
+  max-width: 250px;
+  text-align: center;
+}
+
+.thumbnail {
+  width: 100%;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  transition: transform 0.3s ease;
+}
+
+.thumbnail:hover {
+  transform: scale(1.05);
+}
