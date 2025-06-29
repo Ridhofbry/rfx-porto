@@ -181,14 +181,7 @@ footer {
 .btn-primary,
 .btn-secondary {
   margin-top: 0.5rem;
-}
 
-@media (max-width: 600px) {
-  .btn-primary,
-  .btn-secondary {
-    width: 80%;
-    margin: 0.5rem 0;
-  }
 }
 @keyframes fadeInUp {
   from {
