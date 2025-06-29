@@ -208,6 +208,7 @@ footer {
 }
 .hero {
   position: relative;
+  width: 100%;
   height: 100vh;
   overflow: hidden;
   display: flex;
@@ -216,25 +217,21 @@ footer {
   text-align: center;
   padding: 2rem;
   color: white;
+  background: black;
 }
 
-.hero-bg {
+.hero video.hero-bg {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: auto;
-  height: 100vh;
+  top: 0;
+  left: 0;
   min-width: 100%;
-  transform: translate(-50%, -50%);
-  object-fit: cover;
+  min-height: 100%;
+  width: auto;
+  height: auto;
   z-index: -1;
+  object-fit: cover;
   opacity: 0.35;
   filter: brightness(0.7);
-}
 
-.hero-content {
-  position: relative;
-  z-index: 1;
-  max-width: 800px;
 }
 
