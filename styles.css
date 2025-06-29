@@ -78,7 +78,10 @@ p {
 
 .skills .fill {
   height: 100%;
+  width: 0%; /* nilai awal wajib ada */
   background-color: var(--primary-color);
+  border-radius: 6px;
+  transition: width 1.5s ease-in-out;
 }
 
 ul.gallery {
@@ -201,6 +204,7 @@ footer {
 .delay-3 {
   animation-delay: 0.9s;
 }
+
 
 
 
