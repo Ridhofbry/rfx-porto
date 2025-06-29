@@ -247,7 +247,34 @@ footer {
   margin: 0.5rem auto;
  }
 
-  }
+.parallax-camera {
+  background-image: url('assets/camera-bg.png'); /* ganti sesuai file kamu */
+  min-height: 60vh;
+  background-attachment: fixed;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.parallax-overlay {
+  background-color: rgba(0, 0, 0, 0.5);
+  padding: 4rem 2rem;
+  text-align: center;
+  width: 100%;
+  color: #fff;
+}
+
+.parallax-camera h2 {
+  font-size: 2rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+ }
+
 
 
 
