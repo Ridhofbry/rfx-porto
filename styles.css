@@ -215,6 +215,35 @@ footer {
   animation-delay: 0.9s;
 }
 
+@media (max-width: 600px) {
+  .hero-content {
+    padding: 1.5rem 1rem;
+  }
+
+  .hero-content h1 {
+    font-size: 2rem;
+  }
+
+  .hero-content p {
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    display: block;
+    width: 90%;
+    margin: 0.5rem auto;
+  }
+
+  .hero-small {
+    width: 90%;
+    max-width: 300px;
+    height: auto;
+    margin-bottom: 1rem;
+  }
+}
+
 
 
 
