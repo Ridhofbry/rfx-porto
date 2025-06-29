@@ -185,5 +185,20 @@ footer {
   align-items: center;
   text-align: center;
 }
+.bar {
+  height: 10px;
+  background: #555;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.fill {
+  height: 100%;
+  width: 0%;
+  background-color: var(--primary-color);
+  border-radius: 6px;
+  transition: width 1.5s ease-in-out;
+}
 
 
