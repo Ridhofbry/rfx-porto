@@ -273,6 +273,32 @@ footer {
   text-transform: uppercase;
   letter-spacing: 2px;
 }
+ .with-shape {
+  position: relative;
+  overflow: hidden;
+}
+
+.decor-shape-top {
+  position: absolute;
+  top: -60px;
+  left: -60px;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.05), transparent 70%);
+  transform: rotate(25deg);
+  z-index: 0;
+}
+  .decor-shape-bottom {
+  position: absolute;
+  bottom: -60px;
+  right: -60px;
+  width: 250px;
+  height: 250px;
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.04), transparent 70%);
+  transform: rotate(-25deg);
+  z-index: 0;
+}
+
  }
 
 
