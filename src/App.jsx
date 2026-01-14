@@ -10,8 +10,7 @@ import {
 import { 
   Instagram, Youtube, Mail, ArrowRight, ChevronLeft, 
   ExternalLink, Trash2, Edit3, X, Lock, Unlock, Sparkles, 
-  MessageSquare, Loader2, Camera, Play, Palette, Github, Twitter, Heart, Share2,
-  Layout, Image as ImageIcon, Save, Menu
+  Loader2, Camera, Play, Palette, Layout, Image as ImageIcon, Menu, Check
 } from 'lucide-react';
 
 // --- KONFIGURASI FIREBASE ---
@@ -137,7 +136,7 @@ const ItemKeahlian = ({ keahlian }) => {
  * --- TAMPILAN HALAMAN ---
  */
 
-// Navbar Diperbaiki: Responsif HP & Ukuran Font Desktop
+// Navigasi Responsif (Mobile & Desktop)
 const Navigasi = ({ pindahHalaman, halamanAktif, bukaModalAdmin, statusAdmin }) => {
   const [menuHpBuka, setMenuHpBuka] = useState(false);
 
@@ -149,13 +148,13 @@ const Navigasi = ({ pindahHalaman, halamanAktif, bukaModalAdmin, statusAdmin }) 
   return (
     <>
       <nav className="fixed w-full z-50 top-6 px-4 md:px-6">
-        <div className="max-w-6xl mx-auto flex justify-between items-center bg-black/60 backdrop-blur-2xl border border-white/10 px-6 md:px-8 py-4 md:py-5 rounded-3xl transition-all duration-500 hover:border-white/20 shadow-2xl">
-          <button onClick={() => pindahHalaman('beranda')} className="text-2xl md:text-3xl font-black italic tracking-tighter hover:scale-105 transition text-white group">
+        <div className="max-w-6xl mx-auto flex justify-between items-center bg-black/80 backdrop-blur-2xl border border-white/10 px-6 md:px-8 py-4 md:py-5 rounded-3xl transition-all duration-500 hover:border-white/20 shadow-2xl">
+          <button onClick={() => pindahHalaman('beranda')} className="text-2xl md:text-3xl font-black italic tracking-tighter hover:scale-105 transition text-white group z-50">
             RFX<span className="text-red-600 group-hover:animate-pulse font-bold">.</span>
           </button>
           
-          {/* Menu Desktop (Font Dibesarkan) */}
-          <div className="hidden md:flex gap-10 text-sm uppercase tracking-[0.2em] font-bold text-zinc-400">
+          {/* Menu Desktop (Ukuran Font Disesuaikan) */}
+          <div className="hidden md:flex gap-10 text-sm font-bold uppercase tracking-[0.2em] text-zinc-400">
             {['beranda', 'portofolio', 'kontak'].map(item => (
               <button key={item} onClick={() => pindahHalaman(item)} className={`relative py-2 transition-all duration-300 hover:text-white ${halamanAktif === item ? 'text-red-600' : ''}`}>
                 {item === 'beranda' ? 'Beranda' : item === 'portofolio' ? 'Karya' : 'Kontak'}
@@ -164,22 +163,23 @@ const Navigasi = ({ pindahHalaman, halamanAktif, bukaModalAdmin, statusAdmin }) 
             ))}
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 z-50">
             <button onClick={() => bukaModalAdmin(true)} className={`w-10 h-10 rounded-xl border flex items-center justify-center transition-all duration-300 ${statusAdmin ? 'bg-red-600/20 border-red-600/50 text-red-500' : 'bg-white/5 border-white/10 text-zinc-500 hover:text-white'}`}>
               {statusAdmin ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
             </button>
             <button onClick={() => pindahHalaman('kontak')} className="hidden md:block bg-white text-black px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest transition-all duration-300 hover:bg-red-600 hover:text-white active:scale-95">
               Rekrut Saya
             </button>
-            {/* Tombol Hamburger HP */}
-            <button onClick={() => setMenuHpBuka(!menuHpBuka)} className="md:hidden w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-white">
+            
+            {/* Tombol Hamburger Mobile */}
+            <button onClick={() => setMenuHpBuka(!menuHpBuka)} className="md:hidden w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-white active:scale-90 transition-transform">
               {menuHpBuka ? <X className="w-5 h-5"/> : <Menu className="w-5 h-5"/>}
             </button>
           </div>
         </div>
       </nav>
 
-      {/* Menu Overlay HP */}
+      {/* Menu Overlay Mobile */}
       {menuHpBuka && (
         <div className="fixed inset-0 z-40 bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center space-y-8 animate-in fade-in duration-300">
            {['beranda', 'portofolio', 'kontak'].map(item => (
@@ -372,14 +372,14 @@ const TampilanKontak = ({
   </div>
 );
 
-// --- KOMPONEN PANEL ADMIN LENGKAP ---
+// --- KOMPONEN PANEL ADMIN (DIPERBARUI: Autosave / Tanpa Alert) ---
 const PanelAdmin = ({ 
   modalAdminBuka, setModalAdminBuka, statusAdmin, setStatusAdmin,
   inputKunciAdmin, setInputKunciAdmin, tanganiLoginAdmin,
   tabAdmin, setTabAdmin,
   itemBaru, setItemBaru, idEdit, setIdEdit, batalEdit,
   tanganiSimpanKarya, tanganiHapusKarya, mulaiEdit,
-  daftarKarya, configSitus, setConfigSitus, tanganiUpdateConfig
+  daftarKarya, configSitus, setConfigSitus, tanganiUpdateConfig, statusSimpan
 }) => {
   if (!modalAdminBuka) return null;
 
@@ -431,8 +431,9 @@ const PanelAdmin = ({
                         <input type="url" placeholder="URL Gambar Langsung" required className="bg-white/5 border border-white/10 rounded-[2rem] px-10 py-6 text-white outline-none focus:border-red-600 shadow-inner" value={itemBaru.image} onChange={e => setItemBaru({...itemBaru, image: e.target.value})} />
                       </div>
                       <textarea placeholder="Deskripsi singkat karya..." required rows="4" className="w-full bg-white/5 border border-white/10 rounded-[2rem] px-10 py-8 text-white outline-none resize-none shadow-inner italic font-light text-lg" value={itemBaru.description} onChange={e => setItemBaru({...itemBaru, description: e.target.value})} />
-                      <button type="submit" className="w-full bg-red-600 py-8 rounded-[2rem] font-black uppercase text-xs text-white shadow-3xl shadow-red-900/30 active:scale-95 transition-all">
-                        {idEdit ? 'Update Karya' : 'Simpan ke Cloud'}
+                      
+                      <button type="submit" disabled={statusSimpan === 'loading'} className="w-full bg-red-600 py-8 rounded-[2rem] font-black uppercase text-xs text-white shadow-3xl shadow-red-900/30 active:scale-95 transition-all flex items-center justify-center gap-3">
+                        {statusSimpan === 'loading' ? <Loader2 className="animate-spin w-5 h-5"/> : statusSimpan === 'success' ? <><Check className="w-5 h-5"/> Tersimpan!</> : (idEdit ? 'Update Karya (Replace)' : 'Simpan ke Cloud')}
                       </button>
                     </form>
                   </div>
@@ -458,7 +459,9 @@ const PanelAdmin = ({
                   <form onSubmit={tanganiUpdateConfig} className="space-y-10 text-left">
                     <div className="space-y-4 text-left"><label className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-700 px-4">URL Background Hero</label><input type="url" className="w-full bg-white/5 border border-white/10 rounded-[2rem] px-10 py-6 text-white outline-none focus:border-red-600 shadow-inner" value={configSitus.heroImage} onChange={e => setConfigSitus({...configSitus, heroImage: e.target.value})} /></div>
                     <div className="space-y-4 text-left"><label className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-700 px-4">URL Foto Profil</label><input type="url" className="w-full bg-white/5 border border-white/10 rounded-[2rem] px-10 py-6 text-white outline-none focus:border-red-600 shadow-inner" value={configSitus.aboutImage} onChange={e => setConfigSitus({...configSitus, aboutImage: e.target.value})} /></div>
-                    <button type="submit" className="w-full bg-red-600 py-8 rounded-[2rem] font-black uppercase text-xs text-white shadow-3xl shadow-red-900/30 active:scale-95 transition-all">Perbarui Konfigurasi</button>
+                    <button type="submit" disabled={statusSimpan === 'loading'} className="w-full bg-red-600 py-8 rounded-[2rem] font-black uppercase text-xs text-white shadow-3xl shadow-red-900/30 active:scale-95 transition-all flex items-center justify-center gap-3">
+                       {statusSimpan === 'loading' ? <Loader2 className="animate-spin w-5 h-5"/> : statusSimpan === 'success' ? <><Check className="w-5 h-5"/> Tersimpan!</> : 'Perbarui Konfigurasi'}
+                    </button>
                   </form>
                 </div>
               )}
@@ -493,10 +496,11 @@ const App = () => {
     aboutImage: 'https://images.unsplash.com/photo-1533107862482-0e6974b06ec4?auto=format&fit=crop&w=800'
   });
 
-  // STATE ADMIN TAMBAHAN YANG SEBELUMNYA HILANG
+  // STATE ADMIN & FEEDBACK
   const [tabAdmin, setTabAdmin] = useState('portofolio');
   const [itemBaru, setItemBaru] = useState({ title: '', category: 'video', image: '', description: '' });
   const [idEdit, setIdEdit] = useState(null);
+  const [statusSimpan, setStatusSimpan] = useState('idle'); // 'idle' | 'loading' | 'success'
 
   const KUNCI_ADMIN = "RFX2026"; 
 
@@ -563,27 +567,38 @@ const App = () => {
     }
   };
 
-  // --- FUNGSI ADMIN YANG SEBELUMNYA HILANG ---
+  // --- FUNGSI ADMIN "ENAK" (TANPA ALERT) ---
   const tanganiSimpanKarya = async (e) => {
     e.preventDefault();
     if (!pengguna || !statusAdmin) return;
+    
+    setStatusSimpan('loading');
     const kolPortofolio = collection(db, 'artifacts', appId, 'public', 'data', 'portfolio');
+    
     try {
       if (idEdit) {
-        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'portfolio', idEdit), itemBaru);
+        // Mode Replace / Update
+        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'portfolio', idEdit), itemBaru, { merge: true });
         setIdEdit(null);
-        alert("Karya berhasil diperbarui!");
       } else {
+        // Mode Tambah Baru
         await addDoc(kolPortofolio, itemBaru);
-        alert("Karya baru berhasil ditambahkan!");
       }
+      
+      // Reset Form & Feedback
       setItemBaru({ title: '', category: 'video', image: '', description: '' });
-    } catch (err) { console.error("Gagal simpan:", err); }
+      setStatusSimpan('success');
+      setTimeout(() => setStatusSimpan('idle'), 2000);
+      
+    } catch (err) { 
+      console.error("Gagal simpan:", err); 
+      setStatusSimpan('idle');
+    }
   };
 
   const tanganiHapusKarya = async (id) => {
     if (!pengguna || !statusAdmin) return;
-    if(!confirm("Yakin hapus karya ini?")) return;
+    if(!confirm("Hapus permanen?")) return; // Konfirmasi hapus tetap perlu demi keamanan
     try { 
       await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'portfolio', id)); 
     } catch (err) { console.error(err); }
@@ -592,6 +607,9 @@ const App = () => {
   const mulaiEdit = (item) => {
     setItemBaru({ title: item.title, category: item.category, image: item.image, description: item.description });
     setIdEdit(item.id);
+    // Scroll ke form otomatis agar user tau sedang mode edit
+    const formElement = document.querySelector('form');
+    if(formElement) formElement.scrollIntoView({ behavior: 'smooth' });
   };
 
   const batalEdit = () => {
@@ -602,11 +620,17 @@ const App = () => {
   const tanganiUpdateConfig = async (e) => {
     e.preventDefault();
     if (!pengguna || !statusAdmin) return;
+    
+    setStatusSimpan('loading');
     const docConfig = doc(db, 'artifacts', appId, 'public', 'data', 'site_config', 'home');
     try {
-      await setDoc(docConfig, configSitus);
-      alert("Konfigurasi diperbarui!");
-    } catch (err) { console.error(err); }
+      await setDoc(docConfig, configSitus, { merge: true });
+      setStatusSimpan('success');
+      setTimeout(() => setStatusSimpan('idle'), 2000);
+    } catch (err) { 
+      console.error(err); 
+      setStatusSimpan('idle');
+    }
   };
   // ---------------------------------------------
 
@@ -668,6 +692,7 @@ const App = () => {
         daftarKarya={daftarKarya}
         configSitus={configSitus} setConfigSitus={setConfigSitus}
         tanganiUpdateConfig={tanganiUpdateConfig}
+        statusSimpan={statusSimpan}
       />
 
       <footer className="py-32 border-t border-white/5 text-center mt-40">
