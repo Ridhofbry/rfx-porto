@@ -11,7 +11,7 @@ import {
   Instagram, Youtube, Mail, ArrowRight, ChevronLeft, 
   ExternalLink, Trash2, Edit3, X, Lock, Unlock, Sparkles, 
   MessageSquare, Loader2, Camera, Play, Palette, Github, Twitter, Heart, Share2,
-  Layout, Image as ImageIcon, Save
+  Layout, Image as ImageIcon, Save, Menu
 } from 'lucide-react';
 
 // --- KONFIGURASI FIREBASE ---
@@ -32,7 +32,9 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'rfx-visual-prod';
-const apiKey = ""; // Kunci API Gemini
+
+// Kunci API Gemini (DIPERBARUI)
+const apiKey = "AIzaSyC5q0-1AMLX6GI8UXIAnwP-53oSWjWJhpk"; 
 
 /**
  * --- INTEGRASI GEMINI AI ---
@@ -135,31 +137,64 @@ const ItemKeahlian = ({ keahlian }) => {
  * --- TAMPILAN HALAMAN ---
  */
 
-const Navigasi = ({ pindahHalaman, halamanAktif, bukaModalAdmin, statusAdmin }) => (
-  <nav className="fixed w-full z-50 top-6 px-6">
-    <div className="max-w-6xl mx-auto flex justify-between items-center bg-black/40 backdrop-blur-2xl border border-white/10 px-8 py-5 rounded-3xl transition-all duration-500 hover:border-white/20">
-      <button onClick={() => pindahHalaman('beranda')} className="text-3xl font-black italic tracking-tighter hover:scale-105 transition text-white group">
-        RFX<span className="text-red-600 group-hover:animate-pulse font-bold">.</span>
-      </button>
-      <div className="hidden md:flex gap-10 text-[10px] uppercase tracking-[0.4em] font-black text-white/50">
-        {['beranda', 'portofolio', 'kontak'].map(item => (
-          <button key={item} onClick={() => pindahHalaman(item)} className={`relative py-2 transition-all duration-300 hover:text-white ${halamanAktif === item ? 'text-red-600' : ''}`}>
-            {item === 'beranda' ? 'Beranda' : item === 'portofolio' ? 'Karya' : 'Kontak'}
-            {halamanAktif === item && <span className="absolute bottom-0 left-0 w-full h-[2px] bg-red-600 rounded-full shadow-[0_0_10px_#dc2626]"></span>}
+// Navbar Diperbaiki: Responsif HP & Ukuran Font Desktop
+const Navigasi = ({ pindahHalaman, halamanAktif, bukaModalAdmin, statusAdmin }) => {
+  const [menuHpBuka, setMenuHpBuka] = useState(false);
+
+  const tanganiMenuHp = (halaman) => {
+    pindahHalaman(halaman);
+    setMenuHpBuka(false);
+  };
+
+  return (
+    <>
+      <nav className="fixed w-full z-50 top-6 px-4 md:px-6">
+        <div className="max-w-6xl mx-auto flex justify-between items-center bg-black/60 backdrop-blur-2xl border border-white/10 px-6 md:px-8 py-4 md:py-5 rounded-3xl transition-all duration-500 hover:border-white/20 shadow-2xl">
+          <button onClick={() => pindahHalaman('beranda')} className="text-2xl md:text-3xl font-black italic tracking-tighter hover:scale-105 transition text-white group">
+            RFX<span className="text-red-600 group-hover:animate-pulse font-bold">.</span>
           </button>
-        ))}
-      </div>
-      <div className="flex items-center gap-4">
-        <button onClick={() => bukaModalAdmin(true)} className={`w-10 h-10 rounded-xl border flex items-center justify-center transition-all duration-300 ${statusAdmin ? 'bg-red-600/20 border-red-600/50 text-red-500' : 'bg-white/5 border-white/10 text-zinc-500 hover:text-white'}`}>
-          {statusAdmin ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
-        </button>
-        <button onClick={() => pindahHalaman('kontak')} className="bg-white text-black px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 hover:bg-red-600 hover:text-white active:scale-95">
-          Rekrut Saya
-        </button>
-      </div>
-    </div>
-  </nav>
-);
+          
+          {/* Menu Desktop (Font Dibesarkan) */}
+          <div className="hidden md:flex gap-10 text-sm uppercase tracking-[0.2em] font-bold text-zinc-400">
+            {['beranda', 'portofolio', 'kontak'].map(item => (
+              <button key={item} onClick={() => pindahHalaman(item)} className={`relative py-2 transition-all duration-300 hover:text-white ${halamanAktif === item ? 'text-red-600' : ''}`}>
+                {item === 'beranda' ? 'Beranda' : item === 'portofolio' ? 'Karya' : 'Kontak'}
+                {halamanAktif === item && <span className="absolute bottom-0 left-0 w-full h-[2px] bg-red-600 rounded-full shadow-[0_0_10px_#dc2626]"></span>}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button onClick={() => bukaModalAdmin(true)} className={`w-10 h-10 rounded-xl border flex items-center justify-center transition-all duration-300 ${statusAdmin ? 'bg-red-600/20 border-red-600/50 text-red-500' : 'bg-white/5 border-white/10 text-zinc-500 hover:text-white'}`}>
+              {statusAdmin ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
+            </button>
+            <button onClick={() => pindahHalaman('kontak')} className="hidden md:block bg-white text-black px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest transition-all duration-300 hover:bg-red-600 hover:text-white active:scale-95">
+              Rekrut Saya
+            </button>
+            {/* Tombol Hamburger HP */}
+            <button onClick={() => setMenuHpBuka(!menuHpBuka)} className="md:hidden w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-white">
+              {menuHpBuka ? <X className="w-5 h-5"/> : <Menu className="w-5 h-5"/>}
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      {/* Menu Overlay HP */}
+      {menuHpBuka && (
+        <div className="fixed inset-0 z-40 bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center space-y-8 animate-in fade-in duration-300">
+           {['beranda', 'portofolio', 'kontak'].map(item => (
+              <button key={item} onClick={() => tanganiMenuHp(item)} className={`text-2xl font-black uppercase tracking-widest ${halamanAktif === item ? 'text-red-600' : 'text-white'}`}>
+                {item === 'beranda' ? 'Beranda' : item === 'portofolio' ? 'Karya' : 'Kontak'}
+              </button>
+            ))}
+            <button onClick={() => tanganiMenuHp('kontak')} className="bg-red-600 text-white px-8 py-4 rounded-full text-sm font-black uppercase tracking-widest mt-8">
+              Rekrut Saya
+            </button>
+        </div>
+      )}
+    </>
+  );
+};
 
 const TampilanBeranda = ({ configSitus, pindahHalaman }) => (
   <div className="space-y-0 text-white">
@@ -199,7 +234,6 @@ const TampilanBeranda = ({ configSitus, pindahHalaman }) => (
       </PembungkusBagian>
     </section>
 
-    {/* BAGIAN PENGALAMAN (DIKEMBALIKAN SESUAI PERMINTAAN) */}
     <section className="py-40 border-t border-white/5 bg-[#080808]">
       <PembungkusBagian className="max-w-6xl mx-auto px-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-24 gap-12 text-left">
@@ -343,7 +377,7 @@ const PanelAdmin = ({
   modalAdminBuka, setModalAdminBuka, statusAdmin, setStatusAdmin,
   inputKunciAdmin, setInputKunciAdmin, tanganiLoginAdmin,
   tabAdmin, setTabAdmin,
-  itemBaru, setItemBaru, idEdit, setIdEdit,
+  itemBaru, setItemBaru, idEdit, setIdEdit, batalEdit,
   tanganiSimpanKarya, tanganiHapusKarya, mulaiEdit,
   daftarKarya, configSitus, setConfigSitus, tanganiUpdateConfig
 }) => {
@@ -383,7 +417,11 @@ const PanelAdmin = ({
                 <div className="flex gap-16">
                   {/* Form Tambah/Edit */}
                   <div className="flex-[1.5] space-y-10">
-                    <h3 className="text-3xl font-black italic text-white uppercase tracking-tighter text-left">{idEdit ? 'Edit Karya' : 'Terbitkan Karya Baru'}</h3>
+                    <div className="flex justify-between items-center">
+                      <h3 className="text-3xl font-black italic text-white uppercase tracking-tighter text-left">{idEdit ? 'Edit Karya' : 'Terbitkan Karya Baru'}</h3>
+                      {idEdit && <button onClick={batalEdit} className="text-xs text-red-500 font-bold uppercase tracking-widest hover:text-red-400">Batal Edit</button>}
+                    </div>
+                    
                     <form onSubmit={tanganiSimpanKarya} className="space-y-6 text-left">
                       <input type="text" placeholder="Judul Mahakarya" required className="w-full bg-white/5 border border-white/10 rounded-[2rem] px-10 py-6 text-white text-lg outline-none focus:border-red-600 shadow-inner" value={itemBaru.title} onChange={e => setItemBaru({...itemBaru, title: e.target.value})} />
                       <div className="grid grid-cols-2 gap-6">
@@ -393,7 +431,9 @@ const PanelAdmin = ({
                         <input type="url" placeholder="URL Gambar Langsung" required className="bg-white/5 border border-white/10 rounded-[2rem] px-10 py-6 text-white outline-none focus:border-red-600 shadow-inner" value={itemBaru.image} onChange={e => setItemBaru({...itemBaru, image: e.target.value})} />
                       </div>
                       <textarea placeholder="Deskripsi singkat karya..." required rows="4" className="w-full bg-white/5 border border-white/10 rounded-[2rem] px-10 py-8 text-white outline-none resize-none shadow-inner italic font-light text-lg" value={itemBaru.description} onChange={e => setItemBaru({...itemBaru, description: e.target.value})} />
-                      <button type="submit" className="w-full bg-red-600 py-8 rounded-[2rem] font-black uppercase text-xs text-white shadow-3xl shadow-red-900/30 active:scale-95 transition-all">Simpan ke Cloud</button>
+                      <button type="submit" className="w-full bg-red-600 py-8 rounded-[2rem] font-black uppercase text-xs text-white shadow-3xl shadow-red-900/30 active:scale-95 transition-all">
+                        {idEdit ? 'Update Karya' : 'Simpan ke Cloud'}
+                      </button>
                     </form>
                   </div>
                   
@@ -402,7 +442,7 @@ const PanelAdmin = ({
                     <h4 className="text-[10px] font-black uppercase text-zinc-700 tracking-[0.5em] italic">Arsip ({daftarKarya.length})</h4>
                     <div className="grid gap-4 overflow-y-auto pr-4 max-h-[600px] custom-scrollbar">
                       {daftarKarya.map(item => (
-                        <div key={item.id} className="flex items-center gap-5 p-5 bg-white/5 rounded-3xl border border-white/5 group hover:border-red-600/30 transition-all duration-500 shadow-xl">
+                        <div key={item.id} className={`flex items-center gap-5 p-5 bg-white/5 rounded-3xl border group transition-all duration-500 shadow-xl ${idEdit === item.id ? 'border-red-600 bg-red-600/10' : 'border-white/5 hover:border-red-600/30'}`}>
                           <img src={item.image} className="w-14 h-14 rounded-2xl object-cover grayscale group-hover:grayscale-0 transition-all" alt="" />
                           <div className="flex-1 min-w-0"><h5 className="font-black truncate text-sm text-white italic group-hover:text-red-500 transition-colors">{item.title}</h5><span className="text-[8px] font-black uppercase tracking-widest text-zinc-600 italic">{item.category}</span></div>
                           <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all"><button onClick={() => mulaiEdit(item)} className="p-3 text-zinc-600 hover:text-white transition-colors"><Edit3 className="w-4 h-4" /></button><button onClick={() => tanganiHapusKarya(item.id)} className="p-3 text-zinc-600 hover:text-red-600 transition-colors"><Trash2 className="w-4 h-4" /></button></div>
@@ -532,11 +572,12 @@ const App = () => {
       if (idEdit) {
         await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'portfolio', idEdit), itemBaru);
         setIdEdit(null);
+        alert("Karya berhasil diperbarui!");
       } else {
         await addDoc(kolPortofolio, itemBaru);
+        alert("Karya baru berhasil ditambahkan!");
       }
       setItemBaru({ title: '', category: 'video', image: '', description: '' });
-      alert("Karya berhasil disimpan!");
     } catch (err) { console.error("Gagal simpan:", err); }
   };
 
@@ -551,6 +592,11 @@ const App = () => {
   const mulaiEdit = (item) => {
     setItemBaru({ title: item.title, category: item.category, image: item.image, description: item.description });
     setIdEdit(item.id);
+  };
+
+  const batalEdit = () => {
+    setItemBaru({ title: '', category: 'video', image: '', description: '' });
+    setIdEdit(null);
   };
 
   const tanganiUpdateConfig = async (e) => {
@@ -607,7 +653,7 @@ const App = () => {
         )}
       </main>
 
-      {/* PANEL ADMIN LENGKAP - BUKAN SEKEDAR MODAL BIASA */}
+      {/* PANEL ADMIN LENGKAP */}
       <PanelAdmin 
         modalAdminBuka={modalAdminBuka} setModalAdminBuka={setModalAdminBuka}
         statusAdmin={statusAdmin} setStatusAdmin={setStatusAdmin}
@@ -615,7 +661,7 @@ const App = () => {
         tanganiLoginAdmin={tanganiLoginAdmin}
         tabAdmin={tabAdmin} setTabAdmin={setTabAdmin}
         itemBaru={itemBaru} setItemBaru={setItemBaru}
-        idEdit={idEdit} setIdEdit={setIdEdit}
+        idEdit={idEdit} setIdEdit={setIdEdit} batalEdit={batalEdit}
         tanganiSimpanKarya={tanganiSimpanKarya}
         tanganiHapusKarya={tanganiHapusKarya}
         mulaiEdit={mulaiEdit}
