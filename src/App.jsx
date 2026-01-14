@@ -14,11 +14,7 @@ import {
   Layout, Sparkles, MessageSquare, Loader2, Camera, Play, Palette
 } from 'lucide-react';
 
-/**
- * --- KONFIGURASI SISTEM ---
- * Mendeteksi apakah berjalan di sandbox (Canvas) atau lokal (Vite/GitHub)
- */
-cconst firebaseConfig = {
+const firebaseConfig = {
   apiKey: "AIzaSyDdQfQAxvkfsAW64rF2Ku0c0o1mJXt_b8w",
   authDomain: "rfx-visual-world.firebaseapp.com",
   projectId: "rfx-visual-world",
@@ -26,8 +22,9 @@ cconst firebaseConfig = {
   messagingSenderId: "212260328761",
   appId: "1:212260328761:web:d07cb234027ac977e844e8",
   measurementId: "G-5D57C15ENN"
-  };
-};
+}; // <--- CUKUP SATU SAJA DI SINI
+
+// HAPUS BARIS }; YANG ADA DI BAWAH INI
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
