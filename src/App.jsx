@@ -13,7 +13,8 @@ import {
   Loader2, Camera, Play, Palette, Layout, Image as ImageIcon, Menu, Check
 } from 'lucide-react';
 
-// --- KONFIGURASI FIREBASE ---
+// --- 1. KONFIGURASI FIREBASE (DIPERBAIKI) ---
+// Menggunakan pengecekan environment agar lebih stabil di preview
 const firebaseConfig = typeof __firebase_config !== 'undefined' 
   ? JSON.parse(__firebase_config) 
   : {
@@ -22,8 +23,7 @@ const firebaseConfig = typeof __firebase_config !== 'undefined'
       projectId: "rfx-visual-world",
       storageBucket: "rfx-visual-world.firebasestorage.app",
       messagingSenderId: "212260328761",
-      appId: "1:212260328761:web:d07cb234027ac977e844e8",
-      measurementId: "G-5D57C15ENN"
+      appId: "1:212260328761:web:d07cb234027ac977e844e8"
     };
 
 // Inisialisasi Firebase
@@ -32,8 +32,15 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'rfx-visual-prod';
 
-// Kunci API Gemini (DIPERBARUI SESUAI REQUEST)
+// --- 2. API KEY GEMINI ---
 const apiKey = "AIzaSyC5q0-1AMLX6GI8UXIAnwP-53oSWjWJhpk"; 
+
+// --- 3. HELPER JALUR DATABASE ---
+// PENTING: Gunakan path 'artifacts' agar kompatibel dengan environment ini
+// Jika Anda ingin menggunakan database sendiri sepenuhnya di hosting luar,
+// Anda bisa mengubah ini menjadi: collection(db, colName);
+const getCollectionPath = (colName) => collection(db, 'artifacts', appId, 'public', 'data', colName);
+const getDocPath = (colName, docId) => doc(db, 'artifacts', appId, 'public', 'data', colName, docId);
 
 /**
  * --- INTEGRASI GEMINI AI ---
@@ -133,10 +140,8 @@ const ItemKeahlian = ({ keahlian }) => {
 };
 
 /**
- * --- TAMPILAN HALAMAN ---
+ * --- NAVIGASI (RESPONSIF HP & DESKTOP) ---
  */
-
-// Navigasi Responsif: Font Desktop Lebih Besar & Menu HP Aktif
 const Navigasi = ({ pindahHalaman, halamanAktif, bukaModalAdmin, statusAdmin }) => {
   const [menuHpBuka, setMenuHpBuka] = useState(false);
 
@@ -153,7 +158,7 @@ const Navigasi = ({ pindahHalaman, halamanAktif, bukaModalAdmin, statusAdmin }) 
             RFX<span className="text-red-600 group-hover:animate-pulse font-bold">.</span>
           </button>
           
-          {/* Menu Desktop: Ukuran Font Diperbesar */}
+          {/* Menu Desktop: Ukuran Font Besar */}
           <div className="hidden md:flex gap-12 text-sm md:text-base font-bold uppercase tracking-[0.25em] text-zinc-400">
             {['beranda', 'portofolio', 'kontak'].map(item => (
               <button key={item} onClick={() => pindahHalaman(item)} className={`relative py-2 transition-all duration-300 hover:text-white hover:scale-105 ${halamanAktif === item ? 'text-red-600' : ''}`}>
@@ -179,7 +184,7 @@ const Navigasi = ({ pindahHalaman, halamanAktif, bukaModalAdmin, statusAdmin }) 
         </div>
       </nav>
 
-      {/* Menu Overlay Mobile Fullscreen */}
+      {/* Menu Overlay Mobile */}
       {menuHpBuka && (
         <div className="fixed inset-0 z-40 bg-black/98 backdrop-blur-xl flex flex-col items-center justify-center space-y-10 animate-in fade-in duration-300">
            {['beranda', 'portofolio', 'kontak'].map(item => (
@@ -196,12 +201,13 @@ const Navigasi = ({ pindahHalaman, halamanAktif, bukaModalAdmin, statusAdmin }) 
   );
 };
 
+// --- TAMPILAN HALAMAN ---
 const TampilanBeranda = ({ configSitus, pindahHalaman }) => (
   <div className="space-y-0 text-white">
     <section className="relative h-screen flex items-center justify-center overflow-hidden">
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/40 to-[#050505] z-10"></div>
-        <img src={configSitus.heroImage} className="w-full h-full object-cover scale-105 opacity-60" alt="Latar Belakang Utama" />
+        <img src={configSitus.heroImage} className="w-full h-full object-cover scale-105 opacity-60" alt="Hero" />
       </div>
       <div className="relative z-20 text-center px-6 space-y-10">
         <PembungkusBagian>
@@ -311,7 +317,7 @@ const TampilanPortofolio = ({ daftarKarya, filter, setFilter, pindahHalaman }) =
           </div>
         </PembungkusBagian>
       ))}
-      {daftarKarya.length === 0 && <p className="col-span-full text-center text-zinc-500 py-20 italic">Belum ada karya untuk ditampilkan.</p>}
+      {daftarKarya.length === 0 && <p className="col-span-full text-center text-zinc-500 py-20 italic">Belum ada karya. Silakan tambah via Admin Panel.</p>}
     </div>
   </div>
 );
@@ -355,7 +361,7 @@ const TampilanKontak = ({
             <textarea 
               className="w-full bg-white/5 border border-white/10 rounded-[2rem] px-8 py-6 text-white text-lg outline-none focus:border-red-600 h-40 resize-none"
               value={kueriAi} onChange={e => setKueriAi(e.target.value)}
-              placeholder="Ceritakan ide proyek Anda, asisten AI kami akan menyarankan konsep visual..."
+              placeholder="Ceritakan ide proyek Anda..."
             />
             <button type="submit" disabled={sedangKonsultasi} className="w-full bg-red-600 py-6 rounded-[2rem] font-black uppercase text-xs text-white">
               {sedangKonsultasi ? <Loader2 className="animate-spin mx-auto" /> : "Buat Konsep"}
@@ -372,7 +378,7 @@ const TampilanKontak = ({
   </div>
 );
 
-// --- KOMPONEN PANEL ADMIN (DIPERBARUI: Autosave Logic & Clean UI) ---
+// --- PANEL ADMIN (DIPERBARUI: Autosave & Mode "Enak") ---
 const PanelAdmin = ({ 
   modalAdminBuka, setModalAdminBuka, statusAdmin, setStatusAdmin,
   inputKunciAdmin, setInputKunciAdmin, tanganiLoginAdmin,
@@ -433,7 +439,7 @@ const PanelAdmin = ({
                       <textarea placeholder="Deskripsi singkat karya..." required rows="4" className="w-full bg-white/5 border border-white/10 rounded-[2rem] px-10 py-8 text-white outline-none resize-none shadow-inner italic font-light text-lg" value={itemBaru.description} onChange={e => setItemBaru({...itemBaru, description: e.target.value})} />
                       
                       <button type="submit" disabled={statusSimpan === 'loading'} className="w-full bg-red-600 py-8 rounded-[2rem] font-black uppercase text-xs text-white shadow-3xl shadow-red-900/30 active:scale-95 transition-all flex items-center justify-center gap-3">
-                        {statusSimpan === 'loading' ? <Loader2 className="animate-spin w-5 h-5"/> : statusSimpan === 'success' ? <><Check className="w-5 h-5"/> Tersimpan!</> : (idEdit ? 'Update Karya (Replace)' : 'Simpan ke Cloud')}
+                        {statusSimpan === 'loading' ? <Loader2 className="animate-spin w-5 h-5"/> : statusSimpan === 'success' ? <><Check className="w-5 h-5"/> Tersimpan!</> : (idEdit ? 'Update (Autosave Style)' : 'Simpan ke Cloud')}
                       </button>
                     </form>
                   </div>
@@ -453,7 +459,6 @@ const PanelAdmin = ({
                   </div>
                 </div>
               ) : (
-                // Tab Konfigurasi
                 <div className="max-w-2xl space-y-12 text-left">
                   <div className="space-y-4 text-left"><h3 className="text-4xl font-black italic text-white uppercase tracking-tighter">Media Global</h3><p className="text-zinc-600 text-lg font-light italic">Konfigurasi visual utama website yang tersimpan di server.</p></div>
                   <form onSubmit={tanganiUpdateConfig} className="space-y-10 text-left">
@@ -524,11 +529,12 @@ const App = () => {
     return () => batalLangganan();
   }, []);
 
-  // Langkah 2: Sinkronisasi Data Firestore
+  // Langkah 2: Sinkronisasi Data Firestore (Jalur Sederhana)
   useEffect(() => {
     if (!pengguna) return;
 
-    const kolPortofolio = collection(db, 'artifacts', appId, 'public', 'data', 'portfolio');
+    // Menggunakan path sederhana: 'portfolio' dan 'site_config'
+    const kolPortofolio = getCollectionPath('portfolio');
     const unsubPortofolio = onSnapshot(kolPortofolio, 
       (snapshot) => {
         setDaftarKarya(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
@@ -536,7 +542,7 @@ const App = () => {
       (error) => console.error("Error portofolio snapshot:", error)
     );
 
-    const docConfig = doc(db, 'artifacts', appId, 'public', 'data', 'site_config', 'home');
+    const docConfig = getDocPath('site_config', 'home');
     const unsubConfig = onSnapshot(docConfig, 
       (docSnap) => {
         if (docSnap.exists()) setConfigSitus(docSnap.data());
@@ -573,13 +579,13 @@ const App = () => {
     if (!pengguna || !statusAdmin) return;
     
     setStatusSimpan('loading');
-    const kolPortofolio = collection(db, 'artifacts', appId, 'public', 'data', 'portfolio');
+    const kolPortofolio = getCollectionPath('portfolio');
     
     try {
       if (idEdit) {
-        // Mode Replace / Update - STAY IN EDIT MODE (Seperti Config)
-        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'portfolio', idEdit), itemBaru, { merge: true });
-        // Jangan clear form atau idEdit agar admin bisa lanjut edit jika mau
+        // Mode Replace / Update - STAY IN EDIT MODE
+        await setDoc(getDocPath('portfolio', idEdit), itemBaru, { merge: true });
+        // Form tidak di-reset agar bisa lanjut edit
       } else {
         // Mode Tambah Baru - Clear form untuk input berikutnya
         await addDoc(kolPortofolio, itemBaru);
@@ -599,7 +605,7 @@ const App = () => {
     if (!pengguna || !statusAdmin) return;
     if(!confirm("Hapus permanen?")) return;
     try { 
-      await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'portfolio', id)); 
+      await deleteDoc(getDocPath('portfolio', id)); 
     } catch (err) { console.error(err); }
   };
 
@@ -620,7 +626,7 @@ const App = () => {
     if (!pengguna || !statusAdmin) return;
     
     setStatusSimpan('loading');
-    const docConfig = doc(db, 'artifacts', appId, 'public', 'data', 'site_config', 'home');
+    const docConfig = getDocPath('site_config', 'home');
     try {
       await setDoc(docConfig, configSitus, { merge: true });
       setStatusSimpan('success');
