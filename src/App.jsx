@@ -47,34 +47,6 @@ const useDebounce = (value, delay) => {
 /**
  * --- INTEGRASI GEMINI AI ---
  */
-const tanganiAi = async (e) => {
-  e.preventDefault();
-  if (!kueriAi.trim()) return;
-
-  setSedangKonsultasi(true);
-  setResponAi(""); 
-
-  // --- KITA TARUH KEY LANGSUNG DI SINI (HARDCODE) BIAR PASTI TERBACA ---
-  // Pastikan ini key baru dari aistudio.google.com ya!
-  const API_KEY_SPESIAL = "AIzaSyAW9wPQsAqL9Ti21Em0kir2W8-pDNzpmeU"; 
-
-  try {
-    console.log("Mencoba menghubungi Google..."); // Cek di Console (F12)
-
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY_SPESIAL}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{ 
-              text: `Kamu adalah asisten videografer profesional untuk RFX Visual. Jawab pertanyaan ini dengan singkat, gaul, dan solutif: ${kueriAi}` 
-            }]
-          }]
-        })
-      }
-    );
 
     const data = await response.json();
 
@@ -98,23 +70,6 @@ const tanganiAi = async (e) => {
     setResponAi(`GAGAL: ${err.message}`); 
   } finally {
     setSedangKonsultasi(false);
-  }
-};
-    
-    const hasil = await response.json();
-    
-    // Debugging: Cek error asli di Console Browser (Tekan F12 > Console)
-    if (!response.ok) {
-      console.error("ERROR DARI GOOGLE:", hasil);
-      // Ini biar pesan error aslinya muncul di layar HP/Laptop kamu
-      throw new Error(hasil.error?.message || "Ditolak Google (Cek Console)");
-    }
-    
-    return hasil.candidates?.[0]?.content?.parts?.[0]?.text || "AI diam saja.";
-  } catch (err) {
-    console.error("Koneksi AI Gagal:", err);
-    // Lempar error asli biar terbaca di UI
-    throw err; 
   }
 };
 
@@ -653,7 +608,6 @@ const App = () => {
   const [inputKunciAdmin, setInputKunciAdmin] = useState('');
   const [pengguna, setPengguna] = useState(null);
   const [modalAiBuka, setModalAiBuka] = useState(false);
-
   const [kueriAi, setKueriAi] = useState('');
   const [responAi, setResponAi] = useState('');
   const [sedangKonsultasi, setSedangKonsultasi] = useState(false);
@@ -752,16 +706,47 @@ const App = () => {
 
   const tanganiAi = async (e) => {
     e.preventDefault();
-    if (!kueriAi) return;
+    if (!kueriAi.trim()) return;
+
     setSedangKonsultasi(true);
+    setResponAi(""); 
+
+    // KUNCI KHUSUS AI (Pastikan ini kunci dari AI Studio)
+   const API_KEY_SPESIAL = "AIzaSyAW9wPQsAqL9Ti21Em0kir2W8-pDNzpmeU"; 
+
     try {
-      const prompt = `Pengguna ingin saran konsep visual: "${kueriAi}". Berikan saran kreatif yang puitis dan teknis dalam bahasa Indonesia yang keren.`;
-      const hasil = await panggilGemini(prompt, "RFX Visual Konsultan AI - Ahli Video & Fotografi.");
-      setResponAi(hasil);
-    } catch (err) { 
-      setResponAi("Terjadi kesalahan saat menghubungi asisten AI."); 
-    } finally { 
-      setSedangKonsultasi(false); 
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY_SPESIAL}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{
+              parts: [{ 
+                text: `Kamu adalah asisten videografer profesional untuk RFX Visual. Jawab pertanyaan ini dengan singkat, gaul, dan solutif: ${kueriAi}` 
+              }]
+            }]
+          })
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error?.message || "Google menolak akses.");
+      }
+
+      if (data.candidates && data.candidates.length > 0) {
+        setResponAi(data.candidates[0].content.parts[0].text);
+      } else {
+        setResponAi("Hmm, AI-nya bingung mau jawab apa.");
+      }
+
+    } catch (err) {
+      console.error("ERROR:", err);
+      setResponAi(`GAGAL: ${err.message}`); 
+    } finally {
+      setSedangKonsultasi(false);
     }
   };
 
