@@ -33,7 +33,7 @@ const db = getFirestore(app);
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'rfx-visual-prod';
 
 // --- 2. API KEY GEMINI ---
-const apiKey = "AIzaSyAb6GPiqNaijwIHRFQN883gYZzjMfYzTCU"; 
+const apiKey = "AIzaSyC5q0-1AMLX6GI8UXIAnwP-53oSWjWJhpk"; 
 
 // --- 3. HELPER JALUR DATABASE ---
 const getCollectionPath = (colName) => collection(db, 'artifacts', appId, 'public', 'data', colName);
