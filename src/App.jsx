@@ -13,7 +13,6 @@ import {
   Loader2, Camera, Play, Palette, Layout, Image as ImageIcon, Menu, Check, Save
 } from 'lucide-react';
 
-// --- 1. KONFIGURASI FIREBASE ---
 const firebaseConfig = typeof __firebase_config !== 'undefined' 
   ? JSON.parse(__firebase_config) 
   : {
@@ -26,20 +25,16 @@ const firebaseConfig = typeof __firebase_config !== 'undefined'
       appId: "1:212260328761:web:d07cb234027ac977e844e8"
     };
 
-// Inisialisasi Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'rfx-visual-prod';
 
-// --- 2. API KEY GEMINI ---
-const apiKey = "AIzaSyC5q0-1AMLX6GI8UXIAnwP-53oSWjWJhpk"; 
+const apiKey = "gen-lang-client-0649806898"; 
 
-// --- 3. HELPER JALUR DATABASE ---
 const getCollectionPath = (colName) => collection(db, 'artifacts', appId, 'public', 'data', colName);
 const getDocPath = (colName, docId) => doc(db, 'artifacts', appId, 'public', 'data', colName, docId);
 
-// Hook untuk Debounce (Autosave Delay)
 const useDebounce = (value, delay) => {
   const [debouncedValue, setDebouncedValue] = useState(value);
   useEffect(() => {
@@ -200,7 +195,6 @@ const Navigasi = ({ pindahHalaman, halamanAktif, bukaModalAdmin, statusAdmin }) 
   );
 };
 
-// --- TAMPILAN HALAMAN ---
 const TampilanBeranda = ({ configSitus, pindahHalaman }) => (
   <div className="space-y-0 text-white">
     <section className="relative h-screen flex items-center justify-center overflow-hidden">
@@ -396,7 +390,6 @@ const TampilanKontak = ({
   </div>
 );
 
-// --- PANEL ADMIN (DIPERBARUI: FULL AUTOSAVE) ---
 const PanelAdmin = ({ 
   modalAdminBuka, setModalAdminBuka, statusAdmin, setStatusAdmin,
   inputKunciAdmin, setInputKunciAdmin, tanganiLoginAdmin,
@@ -409,11 +402,9 @@ const PanelAdmin = ({
   const [isFirstRunConfig, setIsFirstRunConfig] = useState(true);
   const [isFirstRunEdit, setIsFirstRunEdit] = useState(true);
 
-  // Debounce values untuk autosave (Jeda 1.5 detik setelah ngetik)
   const debouncedConfig = useDebounce(configSitus, 1500);
   const debouncedItemBaru = useDebounce(itemBaru, 1500);
 
-  // AUTOSAVE CONFIG
   useEffect(() => {
     if (isFirstRunConfig) { setIsFirstRunConfig(false); return; }
     if (!statusAdmin) return;
@@ -432,7 +423,6 @@ const PanelAdmin = ({
     simpanConfig();
   }, [debouncedConfig]);
 
-  // AUTOSAVE ITEM (HANYA SAAT EDIT)
   useEffect(() => {
     if (isFirstRunEdit) { setIsFirstRunEdit(false); return; }
     if (!statusAdmin || !idEdit) return; // Hanya jalan kalau sedang edit
@@ -451,9 +441,7 @@ const PanelAdmin = ({
     simpanItemEdit();
   }, [debouncedItemBaru]);
 
-  // FUNGSI TAMBAH BARU (IMPLICIT VIA ENTER/BLUR)
   const handleInputBaru = async (e, force = false) => {
-    // Simpan jika tekan Enter atau pindah fokus (Blur) dari kolom link
     if (force || e.key === 'Enter') {
       if (!itemBaru.title || !itemBaru.image) return; // Validasi minimal
       
@@ -605,7 +593,6 @@ const PanelAdmin = ({
   );
 };
 
-// --- AKAR APLIKASI ---
 const App = () => {
   const [halamanAktif, setHalamanAktif] = useState('beranda');
   const [filter, setFilter] = useState('all');
@@ -616,24 +603,21 @@ const App = () => {
   const [pengguna, setPengguna] = useState(null);
   const [modalAiBuka, setModalAiBuka] = useState(false);
 
-  // Status AI & Firestore
   const [kueriAi, setKueriAi] = useState('');
   const [responAi, setResponAi] = useState('');
   const [sedangKonsultasi, setSedangKonsultasi] = useState(false);
   const [daftarKarya, setDaftarKarya] = useState([]);
   const [configSitus, setConfigSitus] = useState({
-    heroImage: 'https://images.unsplash.com/photo-1478720568477-152d9b164e26?auto=format&fit=crop&w=1920',
-    aboutImage: 'https://images.unsplash.com/photo-1533107862482-0e6974b06ec4?auto=format&fit=crop&w=800'
+    heroImage: 'https://drive.google.com/uc?export=download&id=1vG4LkRFU6r03-eieQfIWOo-nBwzk9cOD',
+    aboutImage: 'https://drive.google.com/uc?export=download&id=1Ghg9q02BHysbI_V7nhbjKOpypbFQIRTs'
   });
 
-  // STATE ADMIN & FEEDBACK
   const [tabAdmin, setTabAdmin] = useState('portofolio');
   const [itemBaru, setItemBaru] = useState({ title: '', category: 'video', image: '', description: '' });
   const [idEdit, setIdEdit] = useState(null);
 
   const KUNCI_ADMIN = "RFX2026"; 
 
-  // Langkah 1: Inisialisasi Autentikasi
   useEffect(() => {
     const initAutentikasi = async () => {
       try {
