@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { initializeApp } from 'firebase/app';
 import { 
   getFirestore, collection, doc, setDoc, addDoc, 
@@ -10,7 +10,7 @@ import {
 import { 
   Instagram, Youtube, Mail, ArrowRight, ChevronLeft, 
   ExternalLink, Trash2, Edit3, X, Lock, Unlock, Sparkles, 
-  Loader2, Camera, Play, Palette, Layout, Image as ImageIcon, Menu, Check
+  Loader2, Camera, Play, Palette, Layout, Image as ImageIcon, Menu, Check, Save
 } from 'lucide-react';
 
 // --- 1. KONFIGURASI FIREBASE ---
@@ -23,8 +23,7 @@ const firebaseConfig = typeof __firebase_config !== 'undefined'
       projectId: "rfx-visual-world",
       storageBucket: "rfx-visual-world.firebasestorage.app",
       messagingSenderId: "212260328761",
-      appId: "1:212260328761:web:d07cb234027ac977e844e8",
-      measurementId: "G-5D57C15ENN"
+      appId: "1:212260328761:web:d07cb234027ac977e844e8"
     };
 
 // Inisialisasi Firebase
@@ -33,45 +32,43 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'rfx-visual-prod';
 
-// --- 2. API KEY GEMINI (UPDATED) ---
-const apiKey = "AIzaSyAb6GPiqNaijwIHRFQN883gYZzjMfYzTCU"; 
+// --- 2. API KEY GEMINI ---
+const apiKey = "AIzaSyC5q0-1AMLX6GI8UXIAnwP-53oSWjWJhpk"; 
 
 // --- 3. HELPER JALUR DATABASE ---
 const getCollectionPath = (colName) => collection(db, 'artifacts', appId, 'public', 'data', colName);
 const getDocPath = (colName, docId) => doc(db, 'artifacts', appId, 'public', 'data', colName, docId);
 
+// Hook untuk Debounce (Autosave Delay)
+const useDebounce = (value, delay) => {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+  useEffect(() => {
+    const handler = setTimeout(() => setDebouncedValue(value), delay);
+    return () => clearTimeout(handler);
+  }, [value, delay]);
+  return debouncedValue;
+};
+
 /**
- * --- INTEGRASI GEMINI AI (VERSI REST API STABIL) ---
- * Menggantikan SDK @google/genai agar kompatibel di browser tanpa instalasi npm tambahan.
+ * --- INTEGRASI GEMINI AI ---
  */
 const panggilGemini = async (prompt, instruksiSistem = "") => {
-  // Kita gunakan model terbaru yang tersedia secara publik
-  const modelName = "gemini-2.0-flash-exp"; 
-  
+  const modelName = "gemini-1.5-flash"; 
   try {
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
-        // Menambahkan instruksi sistem jika ada (Fitur Gemini 1.5/2.0)
         systemInstruction: instruksiSistem ? { parts: [{ text: instruksiSistem }] } : undefined
       })
     });
-
     const hasil = await response.json();
-    
-    if (!response.ok) {
-      console.error("Gemini API Error:", hasil);
-      throw new Error(hasil.error?.message || "Gagal menghubungi AI");
-    }
-
-    // Mengambil teks jawaban
+    if (!response.ok) throw new Error(hasil.error?.message || "Kesalahan API");
     return hasil.candidates?.[0]?.content?.parts?.[0]?.text || "Maaf, AI tidak memberikan respons.";
   } catch (err) {
     console.error("Koneksi AI Gagal:", err);
-    // Fallback message agar UI tidak rusak
-    return "Maaf, layanan AI sedang sibuk atau kuota habis. Silakan coba lagi nanti.";
+    return "Maaf, koneksi ke AI sedang terkendala.";
   }
 };
 
@@ -96,8 +93,8 @@ const kategoriKarya = ["Semua", "Video", "Foto", "Animasi"];
 /**
  * --- KOMPONEN UI ---
  */
-
-const PembungkusBagian = ({ children, className = "" }) => {
+// Nama komponen diganti menjadi SectionWrapper agar sesuai dengan pemanggilan di footer
+const SectionWrapper = ({ children, className = "" }) => {
   const [ref, setRef] = useState(null);
   const [terlihat, setTerlihat] = useState(false);
 
@@ -181,7 +178,6 @@ const Navigasi = ({ pindahHalaman, halamanAktif, bukaModalAdmin, statusAdmin }) 
             <button onClick={() => pindahHalaman('kontak')} className="hidden md:block bg-white text-black px-8 py-4 rounded-2xl text-sm font-black uppercase tracking-widest transition-all duration-300 hover:bg-red-600 hover:text-white active:scale-95 shadow-lg">
               Rekrut Saya
             </button>
-            
             <button onClick={() => setMenuHpBuka(!menuHpBuka)} className="md:hidden w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-white active:scale-90 transition-transform border border-white/5">
               {menuHpBuka ? <X className="w-6 h-6"/> : <Menu className="w-6 h-6"/>}
             </button>
@@ -214,7 +210,7 @@ const TampilanBeranda = ({ configSitus, pindahHalaman }) => (
         <img src={configSitus.heroImage} className="w-full h-full object-cover scale-105 opacity-60" alt="Hero" />
       </div>
       <div className="relative z-20 text-center px-6 space-y-10">
-        <PembungkusBagian>
+        <SectionWrapper>
           <div className="inline-block px-5 py-2 border border-white/10 rounded-full text-[9px] uppercase tracking-[0.5em] mb-6 bg-white/5 backdrop-blur-md text-zinc-400 font-bold">Seniman Visual • Malang, Indonesia</div>
           <h1 className="text-7xl md:text-[130px] font-black tracking-tighter leading-[0.8] mb-12 italic">
             <span className="block opacity-30">RFX</span>
@@ -225,12 +221,12 @@ const TampilanBeranda = ({ configSitus, pindahHalaman }) => (
               Eksplorasi Karya <ArrowRight className="w-4 h-4 group-hover:translate-x-2 transition-transform" />
             </button>
           </div>
-        </PembungkusBagian>
+        </SectionWrapper>
       </div>
     </section>
 
     <section className="py-40 px-6 max-w-6xl mx-auto">
-      <PembungkusBagian className="grid md:grid-cols-2 gap-24 items-center">
+      <SectionWrapper className="grid md:grid-cols-2 gap-24 items-center">
         <div className="relative rounded-[3rem] overflow-hidden border border-white/10 aspect-[4/5]">
           <img src={configSitus.aboutImage} className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-[1.5s] hover:scale-110" alt="Tentang Saya" />
         </div>
@@ -241,11 +237,11 @@ const TampilanBeranda = ({ configSitus, pindahHalaman }) => (
             <p>Berasal dari Malang, saya menjelajahi setiap detail visual untuk menangkap suasana sinematik yang emosional.</p>
           </div>
         </div>
-      </PembungkusBagian>
+      </SectionWrapper>
     </section>
 
     <section className="py-40 border-t border-white/5 bg-[#080808]">
-      <PembungkusBagian className="max-w-6xl mx-auto px-6">
+      <SectionWrapper className="max-w-6xl mx-auto px-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-24 gap-12 text-left">
           <div className="space-y-4">
              <h3 className="text-[10px] font-black uppercase tracking-[0.5em] text-red-600 font-mono italic">Perjalanan</h3>
@@ -268,25 +264,25 @@ const TampilanBeranda = ({ configSitus, pindahHalaman }) => (
             </div>
           ))}
         </div>
-      </PembungkusBagian>
+      </SectionWrapper>
     </section>
 
     <section className="py-40 px-6 bg-black relative overflow-hidden">
-      <PembungkusBagian className="max-w-6xl mx-auto">
+      <SectionWrapper className="max-w-6xl mx-auto">
         <h2 className="text-6xl font-black tracking-tighter italic uppercase leading-none mb-24 text-left">Keahlian Saya<span className="text-red-600">.</span></h2>
         <div className="grid gap-16 max-w-4xl">
           {dataKeahlian.map((item) => (
             <ItemKeahlian key={item.nama} keahlian={item} />
           ))}
         </div>
-      </PembungkusBagian>
+      </SectionWrapper>
     </section>
   </div>
 );
 
 const TampilanPortofolio = ({ daftarKarya, filter, setFilter, pindahHalaman }) => (
   <div className="pt-48 pb-20 px-6 max-w-7xl mx-auto text-white">
-    <PembungkusBagian className="flex flex-col md:flex-row md:items-end justify-between mb-24 gap-12 text-left">
+    <SectionWrapper className="flex flex-col md:flex-row md:items-end justify-between mb-24 gap-12 text-left">
       <div>
         <button onClick={() => pindahHalaman('beranda')} className="flex items-center gap-3 text-zinc-600 hover:text-red-600 transition-all text-[10px] uppercase tracking-[0.4em] font-black mb-6 group italic">
           <ChevronLeft className="w-4 h-4 group-hover:-translate-x-2 transition-transform" /> Kembali ke Beranda
@@ -304,11 +300,11 @@ const TampilanPortofolio = ({ daftarKarya, filter, setFilter, pindahHalaman }) =
           </button>
         ))}
       </div>
-    </PembungkusBagian>
+    </SectionWrapper>
 
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 text-left">
       {daftarKarya.filter(item => filter === 'all' || item.category === filter).map((item) => (
-        <PembungkusBagian key={item.id}>
+        <SectionWrapper key={item.id}>
           <div className="group relative bg-zinc-950 rounded-[3.5rem] overflow-hidden border border-white/5 hover:border-red-600/30 transition-all duration-1000">
             <div className="aspect-[4/5] overflow-hidden bg-zinc-900">
               <img src={item.image} className="w-full h-full object-cover group-hover:scale-105 transition duration-[2s] opacity-70 group-hover:opacity-100" alt={item.title} />
@@ -319,7 +315,7 @@ const TampilanPortofolio = ({ daftarKarya, filter, setFilter, pindahHalaman }) =
               <p className="text-zinc-400 text-sm opacity-0 group-hover:opacity-100 transition-all duration-700 italic">{item.description}</p>
             </div>
           </div>
-        </PembungkusBagian>
+        </SectionWrapper>
       ))}
       {daftarKarya.length === 0 && <p className="col-span-full text-center text-zinc-500 py-20 italic">Belum ada karya. Silakan tambah via Admin Panel.</p>}
     </div>
@@ -331,7 +327,7 @@ const TampilanKontak = ({
   tanganiAi, sedangKonsultasi, responAi 
 }) => (
   <div className="pt-48 pb-20 px-6 max-w-4xl mx-auto text-center text-white">
-    <PembungkusBagian>
+    <SectionWrapper>
       <h2 className="text-6xl md:text-[120px] font-black tracking-tighter mb-10 italic opacity-10 uppercase select-none">Mari Berkarya</h2>
       <div className="grid md:grid-cols-2 gap-8 text-left">
         <a href="mailto:ridhowork79@gmail.com" className="p-12 bg-white/5 rounded-[3rem] border border-white/10 hover:border-red-600/50 transition-all duration-700 group">
@@ -352,7 +348,7 @@ const TampilanKontak = ({
           <p className="text-2xl font-black tracking-tighter italic">Brainstorm Konsep</p>
         </button>
       </div>
-    </PembungkusBagian>
+    </SectionWrapper>
 
     {modalAiBuka && (
       <div 
@@ -401,20 +397,94 @@ const TampilanKontak = ({
   </div>
 );
 
-// --- PANEL ADMIN ---
+// --- PANEL ADMIN (FULL AUTOSAVE - NO BUTTONS FOR EDITS/CONFIG) ---
 const PanelAdmin = ({ 
   modalAdminBuka, setModalAdminBuka, statusAdmin, setStatusAdmin,
   inputKunciAdmin, setInputKunciAdmin, tanganiLoginAdmin,
   tabAdmin, setTabAdmin,
   itemBaru, setItemBaru, idEdit, setIdEdit, batalEdit,
-  tanganiSimpanKarya, tanganiHapusKarya, mulaiEdit,
-  daftarKarya, configSitus, setConfigSitus, tanganiUpdateConfig, statusSimpan
+  tanganiHapusKarya, mulaiEdit,
+  daftarKarya, configSitus, setConfigSitus,
 }) => {
+  const [statusSimpan, setStatusSimpan] = useState('idle');
+  const [isFirstRunConfig, setIsFirstRunConfig] = useState(true);
+  const [isFirstRunEdit, setIsFirstRunEdit] = useState(true);
+
+  // Debounce values untuk autosave
+  const debouncedConfig = useDebounce(configSitus, 1500);
+  const debouncedItemBaru = useDebounce(itemBaru, 1500);
+
+  // AUTOSAVE CONFIG
+  useEffect(() => {
+    if (isFirstRunConfig) { setIsFirstRunConfig(false); return; }
+    if (!statusAdmin) return;
+
+    const simpanConfig = async () => {
+      setStatusSimpan('loading');
+      try {
+        await setDoc(getDocPath('site_config', 'home'), debouncedConfig, { merge: true });
+        setStatusSimpan('success');
+        setTimeout(() => setStatusSimpan('idle'), 2000);
+      } catch (err) {
+        console.error("Gagal autosave config:", err);
+        setStatusSimpan('idle');
+      }
+    };
+    simpanConfig();
+  }, [debouncedConfig]);
+
+  // AUTOSAVE ITEM (HANYA SAAT EDIT)
+  useEffect(() => {
+    if (isFirstRunEdit) { setIsFirstRunEdit(false); return; }
+    if (!statusAdmin || !idEdit) return; // Hanya jalan kalau sedang edit
+
+    const simpanItemEdit = async () => {
+      setStatusSimpan('loading');
+      try {
+        await setDoc(getDocPath('portfolio', idEdit), debouncedItemBaru, { merge: true });
+        setStatusSimpan('success');
+        setTimeout(() => setStatusSimpan('idle'), 2000);
+      } catch (err) {
+        console.error("Gagal autosave item:", err);
+        setStatusSimpan('idle');
+      }
+    };
+    simpanItemEdit();
+  }, [debouncedItemBaru]);
+
+  // FUNGSI TAMBAH BARU (IMPLICIT VIA ENTER/BLUR)
+  const handleInputBaru = async (e, force = false) => {
+    // Simpan jika tekan Enter atau pindah fokus (Blur) dari kolom link
+    if (force || e.key === 'Enter') {
+      if (!itemBaru.title || !itemBaru.image) return; // Validasi minimal
+      
+      setStatusSimpan('loading');
+      try {
+        await addDoc(getCollectionPath('portfolio'), itemBaru);
+        setItemBaru({ title: '', category: 'video', image: '', description: '' });
+        setStatusSimpan('success');
+        setTimeout(() => setStatusSimpan('idle'), 2000);
+      } catch (err) {
+        console.error("Gagal tambah:", err);
+        setStatusSimpan('idle');
+      }
+    }
+  };
+
   if (!modalAdminBuka) return null;
 
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-center p-6 bg-black/95 backdrop-blur-2xl animate-in fade-in duration-500">
       <div className="relative w-full max-w-6xl bg-[#0a0a0a] border border-white/10 rounded-[4rem] shadow-3xl overflow-hidden flex flex-col max-h-[90vh]">
+        
+        {/* Indikator Status Simpan (Pojok Kanan Atas) */}
+        {statusAdmin && (
+          <div className="absolute top-8 right-8 flex items-center gap-2 z-50">
+            {statusSimpan === 'loading' && <span className="text-zinc-500 text-xs uppercase tracking-widest flex gap-2 items-center"><Loader2 className="w-3 h-3 animate-spin"/> Menyimpan...</span>}
+            {statusSimpan === 'success' && <span className="text-green-500 text-xs uppercase tracking-widest flex gap-2 items-center"><Check className="w-3 h-3"/> Tersimpan</span>}
+          </div>
+        )}
+
         {!statusAdmin ? (
           <div className="p-24 text-center space-y-12 flex-1 flex flex-col justify-center">
             <div className="w-24 h-24 bg-red-600/10 rounded-[2rem] flex items-center justify-center text-red-600 mx-auto shadow-2xl"><Lock className="w-12 h-12" /></div>
@@ -444,27 +514,51 @@ const PanelAdmin = ({
             <div className="flex-1 p-16 overflow-y-auto custom-scrollbar">
               {tabAdmin === 'portofolio' ? (
                 <div className="flex gap-16">
-                  {/* Form Tambah/Edit */}
+                  {/* Form Tambah/Edit (TANPA TOMBOL UPLOAD) */}
                   <div className="flex-[1.5] space-y-10">
                     <div className="flex justify-between items-center">
-                      <h3 className="text-3xl font-black italic text-white uppercase tracking-tighter text-left">{idEdit ? 'Edit Karya' : 'Terbitkan Karya Baru'}</h3>
-                      {idEdit && <button onClick={batalEdit} className="text-xs text-red-500 font-bold uppercase tracking-widest hover:text-red-400">Batal Edit</button>}
+                      <h3 className="text-3xl font-black italic text-white uppercase tracking-tighter text-left">
+                        {idEdit ? 'Edit Mode (Autosave)' : 'Tambah Cepat'}
+                      </h3>
+                      {idEdit && <button onClick={batalEdit} className="text-xs text-red-500 font-bold uppercase tracking-widest hover:text-red-400">Selesai Edit</button>}
                     </div>
                     
-                    <form onSubmit={tanganiSimpanKarya} className="space-y-6 text-left">
-                      <input type="text" placeholder="Judul Mahakarya" required className="w-full bg-white/5 border border-white/10 rounded-[2rem] px-10 py-6 text-white text-lg outline-none focus:border-red-600 shadow-inner" value={itemBaru.title} onChange={e => setItemBaru({...itemBaru, title: e.target.value})} />
+                    <div className="space-y-6 text-left">
+                      <p className="text-xs text-zinc-500 italic mb-4">
+                        {idEdit ? "Perubahan disimpan otomatis saat mengetik." : "Isi data dan tekan ENTER untuk menambahkan karya baru."}
+                      </p>
+
+                      <input 
+                        type="text" placeholder="Judul Mahakarya" required 
+                        className="w-full bg-white/5 border border-white/10 rounded-[2rem] px-10 py-6 text-white text-lg outline-none focus:border-red-600 shadow-inner transition-all" 
+                        value={itemBaru.title} 
+                        onChange={e => setItemBaru({...itemBaru, title: e.target.value})}
+                        onKeyDown={(e) => !idEdit && handleInputBaru(e)}
+                      />
                       <div className="grid grid-cols-2 gap-6">
-                        <select className="bg-zinc-900 border border-white/10 rounded-[2rem] px-10 py-6 text-white outline-none focus:border-red-600 appearance-none italic font-black text-xs uppercase tracking-widest" value={itemBaru.category} onChange={e => setItemBaru({...itemBaru, category: e.target.value})}>
+                        <select 
+                          className="bg-zinc-900 border border-white/10 rounded-[2rem] px-10 py-6 text-white outline-none focus:border-red-600 appearance-none italic font-black text-xs uppercase tracking-widest" 
+                          value={itemBaru.category} 
+                          onChange={e => setItemBaru({...itemBaru, category: e.target.value})}
+                        >
                           <option value="video">Video</option><option value="photo">Foto</option><option value="animation">Animasi</option>
                         </select>
-                        <input type="url" placeholder="URL Gambar Langsung" required className="bg-white/5 border border-white/10 rounded-[2rem] px-10 py-6 text-white outline-none focus:border-red-600 shadow-inner" value={itemBaru.image} onChange={e => setItemBaru({...itemBaru, image: e.target.value})} />
+                        <input 
+                          type="url" placeholder="Paste Link Foto Disini..." required 
+                          className="bg-white/5 border border-white/10 rounded-[2rem] px-10 py-6 text-white outline-none focus:border-red-600 shadow-inner" 
+                          value={itemBaru.image} 
+                          onChange={e => setItemBaru({...itemBaru, image: e.target.value})}
+                          onKeyDown={(e) => !idEdit && handleInputBaru(e)}
+                          onBlur={(e) => !idEdit && handleInputBaru(e, true)} // Auto simpan saat keluar dari kolom link
+                        />
                       </div>
-                      <textarea placeholder="Deskripsi singkat karya..." required rows="4" className="w-full bg-white/5 border border-white/10 rounded-[2rem] px-10 py-8 text-white outline-none resize-none shadow-inner italic font-light text-lg" value={itemBaru.description} onChange={e => setItemBaru({...itemBaru, description: e.target.value})} />
-                      
-                      <button type="submit" disabled={statusSimpan === 'loading'} className="w-full bg-red-600 py-8 rounded-[2rem] font-black uppercase text-xs text-white shadow-3xl shadow-red-900/30 active:scale-95 transition-all flex items-center justify-center gap-3">
-                        {statusSimpan === 'loading' ? <Loader2 className="animate-spin w-5 h-5"/> : statusSimpan === 'success' ? <><Check className="w-5 h-5"/> Tersimpan!</> : (idEdit ? 'Update (Autosave Style)' : 'Simpan ke Cloud')}
-                      </button>
-                    </form>
+                      <textarea 
+                        placeholder="Deskripsi singkat..." required rows="4" 
+                        className="w-full bg-white/5 border border-white/10 rounded-[2rem] px-10 py-8 text-white outline-none resize-none shadow-inner italic font-light text-lg" 
+                        value={itemBaru.description} 
+                        onChange={e => setItemBaru({...itemBaru, description: e.target.value})}
+                      />
+                    </div>
                   </div>
                   
                   {/* Daftar Karya */}
@@ -483,14 +577,25 @@ const PanelAdmin = ({
                 </div>
               ) : (
                 <div className="max-w-2xl space-y-12 text-left">
-                  <div className="space-y-4 text-left"><h3 className="text-4xl font-black italic text-white uppercase tracking-tighter">Media Global</h3><p className="text-zinc-600 text-lg font-light italic">Konfigurasi visual utama website yang tersimpan di server.</p></div>
-                  <form onSubmit={tanganiUpdateConfig} className="space-y-10 text-left">
-                    <div className="space-y-4 text-left"><label className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-700 px-4">URL Background Hero</label><input type="url" className="w-full bg-white/5 border border-white/10 rounded-[2rem] px-10 py-6 text-white outline-none focus:border-red-600 shadow-inner" value={configSitus.heroImage} onChange={e => setConfigSitus({...configSitus, heroImage: e.target.value})} /></div>
-                    <div className="space-y-4 text-left"><label className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-700 px-4">URL Foto Profil</label><input type="url" className="w-full bg-white/5 border border-white/10 rounded-[2rem] px-10 py-6 text-white outline-none focus:border-red-600 shadow-inner" value={configSitus.aboutImage} onChange={e => setConfigSitus({...configSitus, aboutImage: e.target.value})} /></div>
-                    <button type="submit" disabled={statusSimpan === 'loading'} className="w-full bg-red-600 py-8 rounded-[2rem] font-black uppercase text-xs text-white shadow-3xl shadow-red-900/30 active:scale-95 transition-all flex items-center justify-center gap-3">
-                       {statusSimpan === 'loading' ? <Loader2 className="animate-spin w-5 h-5"/> : statusSimpan === 'success' ? <><Check className="w-5 h-5"/> Tersimpan!</> : 'Perbarui Konfigurasi'}
-                    </button>
-                  </form>
+                  <div className="space-y-4 text-left"><h3 className="text-4xl font-black italic text-white uppercase tracking-tighter">Media Global</h3><p className="text-zinc-600 text-lg font-light italic">Paste link baru, otomatis tersimpan.</p></div>
+                  <div className="space-y-10 text-left">
+                    <div className="space-y-4 text-left"><label className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-700 px-4">URL Background Hero</label>
+                      <input 
+                        type="url" 
+                        className="w-full bg-white/5 border border-white/10 rounded-[2rem] px-10 py-6 text-white outline-none focus:border-red-600 shadow-inner" 
+                        value={configSitus.heroImage} 
+                        onChange={e => setConfigSitus({...configSitus, heroImage: e.target.value})} 
+                      />
+                    </div>
+                    <div className="space-y-4 text-left"><label className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-700 px-4">URL Foto Profil</label>
+                      <input 
+                        type="url" 
+                        className="w-full bg-white/5 border border-white/10 rounded-[2rem] px-10 py-6 text-white outline-none focus:border-red-600 shadow-inner" 
+                        value={configSitus.aboutImage} 
+                        onChange={e => setConfigSitus({...configSitus, aboutImage: e.target.value})} 
+                      />
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
@@ -501,9 +606,7 @@ const PanelAdmin = ({
   );
 };
 
-/**
- * --- AKAR APLIKASI ---
- */
+// --- AKAR APLIKASI ---
 const App = () => {
   const [halamanAktif, setHalamanAktif] = useState('beranda');
   const [filter, setFilter] = useState('all');
@@ -528,7 +631,6 @@ const App = () => {
   const [tabAdmin, setTabAdmin] = useState('portofolio');
   const [itemBaru, setItemBaru] = useState({ title: '', category: 'video', image: '', description: '' });
   const [idEdit, setIdEdit] = useState(null);
-  const [statusSimpan, setStatusSimpan] = useState('idle'); // 'idle' | 'loading' | 'success'
 
   const KUNCI_ADMIN = "RFX2026"; 
 
@@ -596,34 +698,6 @@ const App = () => {
     }
   };
 
-  // --- FUNGSI ADMIN "ENAK" (Update Mode: Tidak Reset Form) ---
-  const tanganiSimpanKarya = async (e) => {
-    e.preventDefault();
-    if (!pengguna || !statusAdmin) return;
-    
-    setStatusSimpan('loading');
-    const kolPortofolio = getCollectionPath('portfolio');
-    
-    try {
-      if (idEdit) {
-        // Mode Replace / Update - STAY IN EDIT MODE
-        await setDoc(getDocPath('portfolio', idEdit), itemBaru, { merge: true });
-        // Form tidak di-reset agar bisa lanjut edit
-      } else {
-        // Mode Tambah Baru - Clear form untuk input berikutnya
-        await addDoc(kolPortofolio, itemBaru);
-        setItemBaru({ title: '', category: 'video', image: '', description: '' });
-      }
-      
-      setStatusSimpan('success');
-      setTimeout(() => setStatusSimpan('idle'), 2000);
-      
-    } catch (err) { 
-      console.error("Gagal simpan:", err); 
-      setStatusSimpan('idle');
-    }
-  };
-
   const tanganiHapusKarya = async (id) => {
     if (!pengguna || !statusAdmin) return;
     if(!confirm("Hapus permanen?")) return;
@@ -643,23 +717,6 @@ const App = () => {
     setItemBaru({ title: '', category: 'video', image: '', description: '' });
     setIdEdit(null);
   };
-
-  const tanganiUpdateConfig = async (e) => {
-    e.preventDefault();
-    if (!pengguna || !statusAdmin) return;
-    
-    setStatusSimpan('loading');
-    const docConfig = getDocPath('site_config', 'home');
-    try {
-      await setDoc(docConfig, configSitus, { merge: true });
-      setStatusSimpan('success');
-      setTimeout(() => setStatusSimpan('idle'), 2000);
-    } catch (err) { 
-      console.error(err); 
-      setStatusSimpan('idle');
-    }
-  };
-  // ---------------------------------------------
 
   const tanganiAi = async (e) => {
     e.preventDefault();
@@ -713,18 +770,17 @@ const App = () => {
         tabAdmin={tabAdmin} setTabAdmin={setTabAdmin}
         itemBaru={itemBaru} setItemBaru={setItemBaru}
         idEdit={idEdit} setIdEdit={setIdEdit} batalEdit={batalEdit}
-        tanganiSimpanKarya={tanganiSimpanKarya}
         tanganiHapusKarya={tanganiHapusKarya}
         mulaiEdit={mulaiEdit}
         daftarKarya={daftarKarya}
         configSitus={configSitus} setConfigSitus={setConfigSitus}
-        tanganiUpdateConfig={tanganiUpdateConfig}
-        statusSimpan={statusSimpan}
       />
 
-      <footer className="py-32 border-t border-white/5 text-center mt-40">
-        <div className="text-3xl font-black italic tracking-tighter mb-8 text-white uppercase">RFX<span className="text-red-600">.</span></div>
-        <p className="text-[9px] text-zinc-700 uppercase tracking-[0.8em] font-black italic">&copy; 2026 RFX VISUAL • TERINTEGRASI CLOUD</p>
+      <footer className="py-32 border-t border-white/5 text-center mt-40 bg-black">
+        <SectionWrapper>
+          <div className="text-3xl font-black italic tracking-tighter mb-8 text-white uppercase italic">RFX<span className="text-red-600">.</span></div>
+          <p className="text-[9px] text-zinc-700 uppercase tracking-[0.8em] font-black italic">&copy; 2026 RFX VISUAL • CLOUD INTEGRATED V2.0</p>
+        </SectionWrapper>
       </footer>
     </div>
   );
