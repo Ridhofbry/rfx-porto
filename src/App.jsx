@@ -47,39 +47,57 @@ const useDebounce = (value, delay) => {
 /**
  * --- INTEGRASI GEMINI AI ---
  */
-const panggilGemini = async (prompt, instruksiSistem = "") => {
-  const modelName = "gemini-1.5-flash"; 
-  
-  // Pastikan variabel apiKey sudah didefinisikan di atas fungsi ini!
-  if (!apiKey) {
-    throw new Error("API Key belum dipasang!");
-  }
+const tanganiAi = async (e) => {
+  e.preventDefault();
+  if (!kueriAi.trim()) return;
+
+  setSedangKonsultasi(true);
+  setResponAi(""); 
+
+  // --- KITA TARUH KEY LANGSUNG DI SINI (HARDCODE) BIAR PASTI TERBACA ---
+  // Pastikan ini key baru dari aistudio.google.com ya!
+  const API_KEY_SPESIAL = "AIzaSyAW9wPQsAqL9Ti21Em0kir2W8-pDNzpmeU"; 
 
   try {
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }]
-      })
-    });
+    console.log("Mencoba menghubungi Google..."); // Cek di Console (F12)
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY_SPESIAL}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{ 
+              text: `Kamu adalah asisten videografer profesional untuk RFX Visual. Jawab pertanyaan ini dengan singkat, gaul, dan solutif: ${kueriAi}` 
+            }]
+          }]
+        })
+      }
+    );
 
     const data = await response.json();
 
-    // 1. Cek jika Google menolak (Misal kuota habis / key salah)
+    // 1. CEK ERROR DARI GOOGLE (Penting!)
     if (!response.ok) {
-      console.error("Error API Google:", data);
-      throw new Error(data.error?.message || "Terjadi kesalahan pada API Google");
+      console.error("ERROR GOOGLE:", data); // Lihat detail error di Console
+      throw new Error(data.error?.message || "Google menolak akses (Cek Console)");
     }
 
-    // 2. Ambil teks jawaban dari struktur data Google
-    const teksJawaban = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    
-    return teksJawaban || "Maaf, AI tidak memberikan jawaban.";
+    // 2. AMBIL JAWABAN
+    if (data.candidates && data.candidates.length > 0) {
+      const jawaban = data.candidates[0].content.parts[0].text;
+      setResponAi(jawaban);
+    } else {
+      setResponAi("Hmm, AI-nya bingung mau jawab apa.");
+    }
 
   } catch (err) {
-    console.error("Error di panggilGemini:", err);
-    throw err; // Lempar error biar bisa ditangkap oleh fungsi 'tanganiAi'
+    console.error("ERROR KODINGAN:", err);
+    // Tampilkan pesan error ASLI ke layar supaya kita tahu salahnya dimana
+    setResponAi(`GAGAL: ${err.message}`); 
+  } finally {
+    setSedangKonsultasi(false);
   }
 };
     
