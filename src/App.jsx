@@ -608,8 +608,8 @@ const App = () => {
   const [sedangKonsultasi, setSedangKonsultasi] = useState(false);
   const [daftarKarya, setDaftarKarya] = useState([]);
   const [configSitus, setConfigSitus] = useState({
-    heroImage: 'https://drive.google.com/uc?export=download&id=1vG4LkRFU6r03-eieQfIWOo-nBwzk9cOD',
-    aboutImage: 'https://drive.google.com/uc?export=download&id=1Ghg9q02BHysbI_V7nhbjKOpypbFQIRTs'
+    heroImage: 'https://lh3.googleusercontent.com/d/1vG4LkRFU6r03-eieQfIWOo-nBwzk9cOD',
+    aboutImage: 'https://lh3.googleusercontent.com/d/1Ghg9q02BHysbI_V7nhbjKOpypbFQIRTs'
   });
 
   const [tabAdmin, setTabAdmin] = useState('portofolio');
@@ -637,11 +637,9 @@ const App = () => {
     return () => batalLangganan();
   }, []);
 
-  // Langkah 2: Sinkronisasi Data Firestore (Jalur Sederhana)
   useEffect(() => {
     if (!pengguna) return;
 
-    // Menggunakan path sederhana: 'portfolio' dan 'site_config'
     const kolPortofolio = getCollectionPath('portfolio');
     const unsubPortofolio = onSnapshot(kolPortofolio, 
       (snapshot) => {
