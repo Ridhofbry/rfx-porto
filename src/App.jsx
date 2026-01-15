@@ -1,3 +1,4 @@
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { initializeApp } from 'firebase/app';
 import { 
@@ -675,6 +676,7 @@ const App = () => {
     setIdEdit(null);
   };
 
+  // --- GANTI FUNGSI INI (VERSI SDK RESMI) ---
   const tanganiAi = async (e) => {
     e.preventDefault();
     if (!kueriAi.trim()) return;
@@ -682,44 +684,27 @@ const App = () => {
     setSedangKonsultasi(true);
     setResponAi(""); 
 
-    // KUNCI KHUSUS AI (Pastikan ini kunci dari AI Studio)
-   const API_KEY_SPESIAL = "AIzaSyBdboob0PgYDwfmli-xIMbW6c3zHcp8yxw"; 
+    // 🔴 WAJIB: KUNCI BARU DARI PROJECT BARU (Bukan Project Firebase lama)
+    const API_KEY_SPESIAL = "AIzaSyBdboob0PgYDwfmli-xIMbW6c3zHcp8yxw"; 
 
     try {
-      // Kita gunakan model "gemini-1.5-flash" (standar emas saat ini)
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY_SPESIAL}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{
-              parts: [{ 
-                text: `Kamu adalah asisten videografer profesional untuk RFX Visual. Jawab pertanyaan ini dengan singkat, gaul, dan solutif: ${kueriAi}` 
-              }]
-            }]
-          })
-        }
-      );
+      // 1. Inisialisasi SDK
+      const genAI = new GoogleGenerativeAI(API_KEY_SPESIAL);
+      
+      // 2. Pilih Model (gemini-1.5-flash adalah yang paling standar/cepat)
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-      const data = await response.json();
+      // 3. Kirim Pesan
+      const result = await model.generateContent(`Kamu adalah asisten videografer RFX Visual. Jawab singkat: ${kueriAi}`);
+      const response = await result.response;
+      const text = response.text();
 
-      // Cek Error
-      if (!response.ok) {
-        throw new Error(data.error?.message || "Ditolak oleh Google");
-      }
-
-      // Ambil Data
-      if (data.candidates && data.candidates.length > 0) {
-        setResponAi(data.candidates[0].content.parts[0].text);
-      } else {
-        setResponAi("Hmm, sepertinya AI sedang istirahat.");
-      }
+      setResponAi(text);
 
     } catch (err) {
-      console.error("ERROR FINAL:", err);
-      // Jika masih error, pesan ini akan memberitahu kita kenapa
-      setResponAi(`GAGAL: ${err.message}`); 
+      console.error("ERROR SDK:", err);
+      // Pesan error supaya kita tau masalahnya
+      setResponAi(`Gagal: ${err.message}. (Cek API Key)`);
     } finally {
       setSedangKonsultasi(false);
     }
