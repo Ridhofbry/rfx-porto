@@ -30,7 +30,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'rfx-visual-prod';
 
-const apiKey = "gen-lang-client-0649806898"; 
+const apiKey = "AIzaSyAojVJQRsm5r4avQPGn5lWj51Z74EgH2fo"; 
 
 const getCollectionPath = (colName) => collection(db, 'artifacts', appId, 'public', 'data', colName);
 const getDocPath = (colName, docId) => doc(db, 'artifacts', appId, 'public', 'data', colName, docId);
@@ -50,20 +50,29 @@ const useDebounce = (value, delay) => {
 const panggilGemini = async (prompt, instruksiSistem = "") => {
   const modelName = "gemini-1.5-flash"; 
   try {
+    // Kita hapus dulu systemInstruction untuk tes, biar lebih stabil
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        systemInstruction: instruksiSistem ? { parts: [{ text: instruksiSistem }] } : undefined
+        contents: [{ parts: [{ text: prompt }] }]
       })
     });
+    
     const hasil = await response.json();
-    if (!response.ok) throw new Error(hasil.error?.message || "Kesalahan API");
-    return hasil.candidates?.[0]?.content?.parts?.[0]?.text || "Maaf, AI tidak memberikan respons.";
+    
+    // Debugging: Cek error asli di Console Browser (Tekan F12 > Console)
+    if (!response.ok) {
+      console.error("ERROR DARI GOOGLE:", hasil);
+      // Ini biar pesan error aslinya muncul di layar HP/Laptop kamu
+      throw new Error(hasil.error?.message || "Ditolak Google (Cek Console)");
+    }
+    
+    return hasil.candidates?.[0]?.content?.parts?.[0]?.text || "AI diam saja.";
   } catch (err) {
     console.error("Koneksi AI Gagal:", err);
-    return `Error: ${err.message}`;
+    // Lempar error asli biar terbaca di UI
+    throw err; 
   }
 };
 
@@ -608,10 +617,7 @@ const App = () => {
   const [sedangKonsultasi, setSedangKonsultasi] = useState(false);
   const [daftarKarya, setDaftarKarya] = useState([]);
   const [configSitus, setConfigSitus] = useState({
-    // Link Gambar Utama (Hero) - ID: 1RBBG8...
-    heroImage: 'https://lh3.googleusercontent.com/d/1RBBG8_rDYtq1NwalK0hicOPp6uDFFEZ8',
-    
-    // Link Gambar Tentang (About) - ID: 1Ghg9q...
+    heroImage: 'https://lh3.googleusercontent.com/d/1vG4LkRFU6r03-eieQfIWOo-nBwzk9cOD',
     aboutImage: 'https://lh3.googleusercontent.com/d/1Ghg9q02BHysbI_V7nhbjKOpypbFQIRTs'
   });
 
