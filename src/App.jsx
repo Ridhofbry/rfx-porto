@@ -13,26 +13,27 @@ import {
   Loader2, Camera, Play, Palette, Layout, Image as ImageIcon, Menu, Check
 } from 'lucide-react';
 
-// --- 1. KONFIGURASI FIREBASE (DIPERBARUI LENGKAP) ---
-const firebaseConfig = {
-  apiKey: "AIzaSyDdQfQAxvkfsAW64rF2Ku0c0o1mJXt_b8w",
-  authDomain: "rfx-visual-world.firebaseapp.com",
-  databaseURL: "https://rfx-visual-world-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "rfx-visual-world",
-  storageBucket: "rfx-visual-world.firebasestorage.app",
-  messagingSenderId: "212260328761",
-  appId: "1:212260328761:web:d07cb234027ac977e844e8",
-  measurementId: "G-5D57C15ENN"
-};
+// --- 1. KONFIGURASI FIREBASE ---
+const firebaseConfig = typeof __firebase_config !== 'undefined' 
+  ? JSON.parse(__firebase_config) 
+  : {
+      apiKey: "AIzaSyDdQfQAxvkfsAW64rF2Ku0c0o1mJXt_b8w",
+      authDomain: "rfx-visual-world.firebaseapp.com",
+      databaseURL: "https://rfx-visual-world-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "rfx-visual-world",
+      storageBucket: "rfx-visual-world.firebasestorage.app",
+      messagingSenderId: "212260328761",
+      appId: "1:212260328761:web:d07cb234027ac977e844e8",
+      measurementId: "G-5D57C15ENN"
+    };
 
 // Inisialisasi Firebase
-// Catatan: Kita tidak mengaktifkan getAnalytics() di sini untuk mencegah error crash di preview
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'rfx-visual-prod';
 
-// --- 2. API KEY GEMINI ---
+// --- 2. API KEY GEMINI (UPDATED) ---
 const apiKey = "AIzaSyC5q0-1AMLX6GI8UXIAnwP-53oSWjWJhpk"; 
 
 // --- 3. HELPER JALUR DATABASE ---
@@ -40,28 +41,37 @@ const getCollectionPath = (colName) => collection(db, 'artifacts', appId, 'publi
 const getDocPath = (colName, docId) => doc(db, 'artifacts', appId, 'public', 'data', colName, docId);
 
 /**
- * --- INTEGRASI GEMINI AI ---
+ * --- INTEGRASI GEMINI AI (VERSI REST API STABIL) ---
+ * Menggantikan SDK @google/genai agar kompatibel di browser tanpa instalasi npm tambahan.
  */
 const panggilGemini = async (prompt, instruksiSistem = "") => {
-  let jeda = 1000;
-  for (let i = 0; i < 5; i++) {
-    try {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          systemInstruction: instruksiSistem ? { parts: [{ text: instruksiSistem }] } : undefined
-        })
-      });
-      const hasil = await response.json();
-      if (!response.ok) throw new Error(hasil.error?.message || "Kesalahan API");
-      return hasil.candidates?.[0]?.content?.parts?.[0]?.text;
-    } catch (err) {
-      if (i === 4) throw err;
-      await new Promise(r => setTimeout(r, jeda));
-      jeda *= 2;
+  // Kita gunakan model terbaru yang tersedia secara publik
+  const modelName = "gemini-2.0-flash-exp"; 
+  
+  try {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        // Menambahkan instruksi sistem jika ada (Fitur Gemini 1.5/2.0)
+        systemInstruction: instruksiSistem ? { parts: [{ text: instruksiSistem }] } : undefined
+      })
+    });
+
+    const hasil = await response.json();
+    
+    if (!response.ok) {
+      console.error("Gemini API Error:", hasil);
+      throw new Error(hasil.error?.message || "Gagal menghubungi AI");
     }
+
+    // Mengambil teks jawaban
+    return hasil.candidates?.[0]?.content?.parts?.[0]?.text || "Maaf, AI tidak memberikan respons.";
+  } catch (err) {
+    console.error("Koneksi AI Gagal:", err);
+    // Fallback message agar UI tidak rusak
+    return "Maaf, layanan AI sedang sibuk atau kuota habis. Silakan coba lagi nanti.";
   }
 };
 
