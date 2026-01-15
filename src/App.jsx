@@ -43,36 +43,7 @@ const useDebounce = (value, delay) => {
   }, [value, delay]);
   return debouncedValue;
 };
-
-/**
- * --- INTEGRASI GEMINI AI ---
- */
-
-    const data = await response.json();
-
-    // 1. CEK ERROR DARI GOOGLE (Penting!)
-    if (!response.ok) {
-      console.error("ERROR GOOGLE:", data); // Lihat detail error di Console
-      throw new Error(data.error?.message || "Google menolak akses (Cek Console)");
-    }
-
-    // 2. AMBIL JAWABAN
-    if (data.candidates && data.candidates.length > 0) {
-      const jawaban = data.candidates[0].content.parts[0].text;
-      setResponAi(jawaban);
-    } else {
-      setResponAi("Hmm, AI-nya bingung mau jawab apa.");
-    }
-
-  } catch (err) {
-    console.error("ERROR KODINGAN:", err);
-    // Tampilkan pesan error ASLI ke layar supaya kita tahu salahnya dimana
-    setResponAi(`GAGAL: ${err.message}`); 
-  } finally {
-    setSedangKonsultasi(false);
-  }
-};
-
+ 
 /**
  * --- DATA STATIS ---
  */
