@@ -30,7 +30,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'rfx-visual-prod';
 
-const apiKey = "AIzaSyAsZ6_PGGO4nuFEU2TsUr9xWV-Eh23qlPQ"; 
+const apiKey = "AIzaSyAW9wPQsAqL9Ti21Em0kir2W8-pDNzpmeU"; 
 
 const getCollectionPath = (colName) => collection(db, 'artifacts', appId, 'public', 'data', colName);
 const getDocPath = (colName, docId) => doc(db, 'artifacts', appId, 'public', 'data', colName, docId);
@@ -49,8 +49,13 @@ const useDebounce = (value, delay) => {
  */
 const panggilGemini = async (prompt, instruksiSistem = "") => {
   const modelName = "gemini-1.5-flash"; 
+  
+  // Pastikan variabel apiKey sudah didefinisikan di atas fungsi ini!
+  if (!apiKey) {
+    throw new Error("API Key belum dipasang!");
+  }
+
   try {
-    // Kita hapus dulu systemInstruction untuk tes, biar lebih stabil
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -58,6 +63,25 @@ const panggilGemini = async (prompt, instruksiSistem = "") => {
         contents: [{ parts: [{ text: prompt }] }]
       })
     });
+
+    const data = await response.json();
+
+    // 1. Cek jika Google menolak (Misal kuota habis / key salah)
+    if (!response.ok) {
+      console.error("Error API Google:", data);
+      throw new Error(data.error?.message || "Terjadi kesalahan pada API Google");
+    }
+
+    // 2. Ambil teks jawaban dari struktur data Google
+    const teksJawaban = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    
+    return teksJawaban || "Maaf, AI tidak memberikan jawaban.";
+
+  } catch (err) {
+    console.error("Error di panggilGemini:", err);
+    throw err; // Lempar error biar bisa ditangkap oleh fungsi 'tanganiAi'
+  }
+};
     
     const hasil = await response.json();
     
