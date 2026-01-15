@@ -30,7 +30,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'rfx-visual-prod';
 
-const apiKey = "AIzaSyAojVJQRsm5r4avQPGn5lWj51Z74EgH2fo"; 
+const apiKey = "AIzaSyAsZ6_PGGO4nuFEU2TsUr9xWV-Eh23qlPQ"; 
 
 const getCollectionPath = (colName) => collection(db, 'artifacts', appId, 'public', 'data', colName);
 const getDocPath = (colName, docId) => doc(db, 'artifacts', appId, 'public', 'data', colName, docId);
