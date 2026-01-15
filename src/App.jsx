@@ -30,7 +30,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'rfx-visual-prod';
 
-const apiKey = "AIzaSyCm0v8V0lp1pjieSyduwsudoCTB0VpUvEc"; 
+const apiKey = "AIzaSyBdboob0PgYDwfmli-xIMbW6c3zHcp8yxw"; 
 
 const getCollectionPath = (colName) => collection(db, 'artifacts', appId, 'public', 'data', colName);
 const getDocPath = (colName, docId) => doc(db, 'artifacts', appId, 'public', 'data', colName, docId);
@@ -683,7 +683,7 @@ const App = () => {
     setResponAi(""); 
 
     // KUNCI KHUSUS AI (Pastikan ini kunci dari AI Studio)
-   const API_KEY_SPESIAL = "AIzaSyCm0v8V0lp1pjieSyduwsudoCTB0VpUvEc"; 
+   const API_KEY_SPESIAL = "AIzaSyBdboob0PgYDwfmli-xIMbW6c3zHcp8yxw"; 
 
     try {
       // Kita gunakan model "gemini-1.5-flash" (standar emas saat ini)
