@@ -13,20 +13,20 @@ import {
   Loader2, Camera, Play, Palette, Layout, Image as ImageIcon, Menu, Check
 } from 'lucide-react';
 
-// --- 1. KONFIGURASI FIREBASE (DIPERBAIKI) ---
-// Menggunakan pengecekan environment agar lebih stabil di preview
-const firebaseConfig = typeof __firebase_config !== 'undefined' 
-  ? JSON.parse(__firebase_config) 
-  : {
-      apiKey: "AIzaSyDdQfQAxvkfsAW64rF2Ku0c0o1mJXt_b8w",
-      authDomain: "rfx-visual-world.firebaseapp.com",
-      projectId: "rfx-visual-world",
-      storageBucket: "rfx-visual-world.firebasestorage.app",
-      messagingSenderId: "212260328761",
-      appId: "1:212260328761:web:d07cb234027ac977e844e8"
-    };
+// --- 1. KONFIGURASI FIREBASE (DIPERBARUI LENGKAP) ---
+const firebaseConfig = {
+  apiKey: "AIzaSyDdQfQAxvkfsAW64rF2Ku0c0o1mJXt_b8w",
+  authDomain: "rfx-visual-world.firebaseapp.com",
+  databaseURL: "https://rfx-visual-world-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "rfx-visual-world",
+  storageBucket: "rfx-visual-world.firebasestorage.app",
+  messagingSenderId: "212260328761",
+  appId: "1:212260328761:web:d07cb234027ac977e844e8",
+  measurementId: "G-5D57C15ENN"
+};
 
 // Inisialisasi Firebase
+// Catatan: Kita tidak mengaktifkan getAnalytics() di sini untuk mencegah error crash di preview
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -36,9 +36,6 @@ const appId = typeof __app_id !== 'undefined' ? __app_id : 'rfx-visual-prod';
 const apiKey = "AIzaSyC5q0-1AMLX6GI8UXIAnwP-53oSWjWJhpk"; 
 
 // --- 3. HELPER JALUR DATABASE ---
-// PENTING: Gunakan path 'artifacts' agar kompatibel dengan environment ini
-// Jika Anda ingin menggunakan database sendiri sepenuhnya di hosting luar,
-// Anda bisa mengubah ini menjadi: collection(db, colName);
 const getCollectionPath = (colName) => collection(db, 'artifacts', appId, 'public', 'data', colName);
 const getDocPath = (colName, docId) => doc(db, 'artifacts', appId, 'public', 'data', colName, docId);
 
@@ -140,7 +137,7 @@ const ItemKeahlian = ({ keahlian }) => {
 };
 
 /**
- * --- NAVIGASI (RESPONSIF HP & DESKTOP) ---
+ * --- NAVIGASI ---
  */
 const Navigasi = ({ pindahHalaman, halamanAktif, bukaModalAdmin, statusAdmin }) => {
   const [menuHpBuka, setMenuHpBuka] = useState(false);
@@ -158,7 +155,6 @@ const Navigasi = ({ pindahHalaman, halamanAktif, bukaModalAdmin, statusAdmin }) 
             RFX<span className="text-red-600 group-hover:animate-pulse font-bold">.</span>
           </button>
           
-          {/* Menu Desktop: Ukuran Font Besar */}
           <div className="hidden md:flex gap-12 text-sm md:text-base font-bold uppercase tracking-[0.25em] text-zinc-400">
             {['beranda', 'portofolio', 'kontak'].map(item => (
               <button key={item} onClick={() => pindahHalaman(item)} className={`relative py-2 transition-all duration-300 hover:text-white hover:scale-105 ${halamanAktif === item ? 'text-red-600' : ''}`}>
@@ -176,7 +172,6 @@ const Navigasi = ({ pindahHalaman, halamanAktif, bukaModalAdmin, statusAdmin }) 
               Rekrut Saya
             </button>
             
-            {/* Tombol Hamburger Mobile */}
             <button onClick={() => setMenuHpBuka(!menuHpBuka)} className="md:hidden w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-white active:scale-90 transition-transform border border-white/5">
               {menuHpBuka ? <X className="w-6 h-6"/> : <Menu className="w-6 h-6"/>}
             </button>
@@ -184,7 +179,6 @@ const Navigasi = ({ pindahHalaman, halamanAktif, bukaModalAdmin, statusAdmin }) 
         </div>
       </nav>
 
-      {/* Menu Overlay Mobile */}
       {menuHpBuka && (
         <div className="fixed inset-0 z-40 bg-black/98 backdrop-blur-xl flex flex-col items-center justify-center space-y-10 animate-in fade-in duration-300">
            {['beranda', 'portofolio', 'kontak'].map(item => (
@@ -351,25 +345,44 @@ const TampilanKontak = ({
     </PembungkusBagian>
 
     {modalAiBuka && (
-      <div className="fixed inset-0 z-[110] flex items-center justify-center p-6 bg-black/95 backdrop-blur-3xl animate-in fade-in duration-300">
-        <div className="relative w-full max-w-3xl bg-[#0a0a0a] border border-white/10 rounded-[4rem] p-16 space-y-10">
-          <div className="flex justify-between items-center">
-            <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white">RFX Konsultan AI</h3>
-            <button onClick={() => setModalAiBuka(false)} className="text-zinc-500 hover:text-white"><X /></button>
+      <div 
+        className="fixed inset-0 z-[110] flex items-center justify-center p-4 md:p-6 bg-black/95 backdrop-blur-3xl animate-in fade-in duration-300"
+        onClick={() => setModalAiBuka(false)} 
+      >
+        <div 
+          className="relative w-full max-w-2xl bg-[#0a0a0a] border border-white/10 rounded-[2.5rem] shadow-3xl p-8 md:p-12 space-y-6 max-h-[85vh] overflow-y-auto custom-scrollbar"
+          onClick={(e) => e.stopPropagation()} 
+        >
+          <div className="sticky top-0 z-10 flex justify-between items-center bg-[#0a0a0a]/90 backdrop-blur-md py-2 -mt-2 mb-4">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-2xl bg-red-600 flex items-center justify-center shadow-[0_0_20px_#dc2626] animate-pulse">
+                <Sparkles className="text-white w-5 h-5" />
+              </div>
+              <h3 className="text-xl font-black italic uppercase tracking-tighter text-white">RFX AI Consultant</h3>
+            </div>
+            <button onClick={() => setModalAiBuka(false)} className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-zinc-500 hover:text-white transition-colors">
+              <X className="w-5 h-5" />
+            </button>
           </div>
+
+          <p className="text-zinc-500 italic text-left text-base font-light">
+            Jelaskan ide project Anda, asisten kami akan menyarankan gaya visual dan moodboard terbaik.
+          </p>
+
           <form onSubmit={tanganiAi} className="space-y-6">
             <textarea 
-              className="w-full bg-white/5 border border-white/10 rounded-[2rem] px-8 py-6 text-white text-lg outline-none focus:border-red-600 h-40 resize-none"
+              className="w-full bg-white/5 border border-white/10 rounded-[2rem] px-6 py-5 text-white text-base outline-none focus:border-red-600 h-32 resize-none shadow-inner"
               value={kueriAi} onChange={e => setKueriAi(e.target.value)}
-              placeholder="Ceritakan ide proyek Anda..."
+              placeholder="Saya ingin buat video profil brand sepatu lokal dengan nuansa vintage urban..."
             />
-            <button type="submit" disabled={sedangKonsultasi} className="w-full bg-red-600 py-6 rounded-[2rem] font-black uppercase text-xs text-white">
-              {sedangKonsultasi ? <Loader2 className="animate-spin mx-auto" /> : "Buat Konsep"}
+            <button type="submit" disabled={sedangKonsultasi} className="w-full bg-red-600 py-5 rounded-[2rem] font-black uppercase text-xs text-white shadow-2xl shadow-red-900/30 flex items-center justify-center gap-3 active:scale-95 transition-all">
+              {sedangKonsultasi ? <Loader2 className="animate-spin w-4 h-4" /> : "Buat Konsep"}
             </button>
           </form>
+
           {responAi && (
-            <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10 max-h-[300px] overflow-y-auto text-left italic font-light text-zinc-300">
-              {responAi}
+            <div className="bg-white/5 border border-white/10 rounded-[2rem] p-8 mt-4 shadow-inner">
+              <p className="text-base leading-relaxed text-zinc-300 font-light italic whitespace-pre-wrap">{responAi}</p>
             </div>
           )}
         </div>
@@ -378,7 +391,7 @@ const TampilanKontak = ({
   </div>
 );
 
-// --- PANEL ADMIN (DIPERBARUI: Autosave & Mode "Enak") ---
+// --- PANEL ADMIN ---
 const PanelAdmin = ({ 
   modalAdminBuka, setModalAdminBuka, statusAdmin, setStatusAdmin,
   inputKunciAdmin, setInputKunciAdmin, tanganiLoginAdmin,
