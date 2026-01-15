@@ -608,7 +608,10 @@ const App = () => {
   const [sedangKonsultasi, setSedangKonsultasi] = useState(false);
   const [daftarKarya, setDaftarKarya] = useState([]);
   const [configSitus, setConfigSitus] = useState({
-    heroImage: 'https://lh3.googleusercontent.com/d/1vG4LkRFU6r03-eieQfIWOo-nBwzk9cOD',
+    // Link Gambar Utama (Hero) - ID: 1RBBG8...
+    heroImage: 'https://lh3.googleusercontent.com/d/1RBBG8_rDYtq1NwalK0hicOPp6uDFFEZ8',
+    
+    // Link Gambar Tentang (About) - ID: 1Ghg9q...
     aboutImage: 'https://lh3.googleusercontent.com/d/1Ghg9q02BHysbI_V7nhbjKOpypbFQIRTs'
   });
 
