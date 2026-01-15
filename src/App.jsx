@@ -33,7 +33,7 @@ const db = getFirestore(app);
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'rfx-visual-prod';
 
 // --- 2. API KEY GEMINI ---
-const apiKey = "AIzaSyC5q0-1AMLX6GI8UXIAnwP-53oSWjWJhpk"; 
+const apiKey = "AIzaSyAb6GPiqNaijwIHRFQN883gYZzjMfYzTCU"; 
 
 // --- 3. HELPER JALUR DATABASE ---
 const getCollectionPath = (colName) => collection(db, 'artifacts', appId, 'public', 'data', colName);
@@ -68,7 +68,7 @@ const panggilGemini = async (prompt, instruksiSistem = "") => {
     return hasil.candidates?.[0]?.content?.parts?.[0]?.text || "Maaf, AI tidak memberikan respons.";
   } catch (err) {
     console.error("Koneksi AI Gagal:", err);
-    return "Maaf, koneksi ke AI sedang terkendala.";
+    return `Error: ${err.message}`;
   }
 };
 
@@ -93,7 +93,6 @@ const kategoriKarya = ["Semua", "Video", "Foto", "Animasi"];
 /**
  * --- KOMPONEN UI ---
  */
-// Nama komponen diganti menjadi SectionWrapper agar sesuai dengan pemanggilan di footer
 const SectionWrapper = ({ children, className = "" }) => {
   const [ref, setRef] = useState(null);
   const [terlihat, setTerlihat] = useState(false);
@@ -397,7 +396,7 @@ const TampilanKontak = ({
   </div>
 );
 
-// --- PANEL ADMIN (FULL AUTOSAVE - NO BUTTONS FOR EDITS/CONFIG) ---
+// --- PANEL ADMIN (DIPERBARUI: FULL AUTOSAVE) ---
 const PanelAdmin = ({ 
   modalAdminBuka, setModalAdminBuka, statusAdmin, setStatusAdmin,
   inputKunciAdmin, setInputKunciAdmin, tanganiLoginAdmin,
@@ -410,7 +409,7 @@ const PanelAdmin = ({
   const [isFirstRunConfig, setIsFirstRunConfig] = useState(true);
   const [isFirstRunEdit, setIsFirstRunEdit] = useState(true);
 
-  // Debounce values untuk autosave
+  // Debounce values untuk autosave (Jeda 1.5 detik setelah ngetik)
   const debouncedConfig = useDebounce(configSitus, 1500);
   const debouncedItemBaru = useDebounce(itemBaru, 1500);
 
