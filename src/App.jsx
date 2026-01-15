@@ -30,7 +30,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'rfx-visual-prod';
 
-const apiKey = "AIzaSyAW9wPQsAqL9Ti21Em0kir2W8-pDNzpmeU"; 
+const apiKey = "AIzaSyCm0v8V0lp1pjieSyduwsudoCTB0VpUvEc"; 
 
 const getCollectionPath = (colName) => collection(db, 'artifacts', appId, 'public', 'data', colName);
 const getDocPath = (colName, docId) => doc(db, 'artifacts', appId, 'public', 'data', colName, docId);
@@ -683,15 +683,16 @@ const App = () => {
     setResponAi(""); 
 
     // KUNCI KHUSUS AI (Pastikan ini kunci dari AI Studio)
-   const API_KEY_SPESIAL = "AIzaSyAW9wPQsAqL9Ti21Em0kir2W8-pDNzpmeU"; 
+   const API_KEY_SPESIAL = "AIzaSyCm0v8V0lp1pjieSyduwsudoCTB0VpUvEc"; 
 
     try {
+      // Kita gunakan model "gemini-1.5-flash" (standar emas saat ini)
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${API_KEY_SPESIAL}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY_SPESIAL}`,
         {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
             contents: [{
               parts: [{ 
                 text: `Kamu adalah asisten videografer profesional untuk RFX Visual. Jawab pertanyaan ini dengan singkat, gaul, dan solutif: ${kueriAi}` 
@@ -703,18 +704,21 @@ const App = () => {
 
       const data = await response.json();
 
+      // Cek Error
       if (!response.ok) {
-        throw new Error(data.error?.message || "Google menolak akses.");
+        throw new Error(data.error?.message || "Ditolak oleh Google");
       }
 
+      // Ambil Data
       if (data.candidates && data.candidates.length > 0) {
         setResponAi(data.candidates[0].content.parts[0].text);
       } else {
-        setResponAi("Hmm, AI-nya bingung mau jawab apa.");
+        setResponAi("Hmm, sepertinya AI sedang istirahat.");
       }
 
     } catch (err) {
-      console.error("ERROR:", err);
+      console.error("ERROR FINAL:", err);
+      // Jika masih error, pesan ini akan memberitahu kita kenapa
       setResponAi(`GAGAL: ${err.message}`); 
     } finally {
       setSedangKonsultasi(false);
