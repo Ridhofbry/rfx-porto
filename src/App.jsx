@@ -819,8 +819,8 @@ const App = () => {
   const [itemBaru, setItemBaru] = useState({ title: '', category: 'video', image: '', description: '' });
   const [idEdit, setIdEdit] = useState(null);
 
-  const KUNCI_ADMIN = "RFX2026"; 
-  const GEMINI_API_KEY = getEnv('VITE_GEMINI_API_KEY') || "AIzaSyA7yOXGTH_Rq5VtOJS-DbVzXzmO-GnKV4s"; 
+  const KUNCI_ADMIN = "20810004"; 
+  const GEMINI_API_KEY = getEnv('VITE_GEMINI_API_KEY'); 
 
   // 1. Inisialisasi Auth & Firebase
   useEffect(() => {
