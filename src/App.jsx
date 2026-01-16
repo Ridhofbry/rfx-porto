@@ -68,7 +68,7 @@ const app = initializeApp(firebaseConfig || {});
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Default App ID jika masih kosong
+// Default App ID jika masih kosong (Hanya nama folder, bukan kredensial)
 if (!appId) appId = 'rfx-porto-prod';
 
 // --- UTILITAS FIRESTORE ---
@@ -741,38 +741,6 @@ const PanelAdmin = ({
                   </div>
                   
                   <div className="space-y-8">
-                    
-                    {/* EDIT TEKS HOME (BARU) */}
-                    <div className="p-6 bg-zinc-900/50 rounded-3xl border border-white/5 space-y-6">
-                        <div className="flex items-center gap-3 text-white border-b border-white/5 pb-4 mb-4">
-                            <Type className="w-5 h-5 text-red-600" />
-                            <h4 className="text-sm font-bold uppercase tracking-wider">Konten Teks Beranda</h4>
-                        </div>
-                        
-                        <div className="space-y-3">
-                            <label className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-500">Judul Utama (Headline)</label>
-                            <textarea 
-                                className="w-full bg-black/50 border border-white/10 rounded-xl px-5 py-4 text-white text-sm outline-none focus:border-red-600 transition-all placeholder:text-zinc-700" 
-                                rows="2"
-                                value={configSitus.homeCaption || ''} 
-                                onChange={e => setConfigSitus({...configSitus, homeCaption: e.target.value})} 
-                                placeholder='"Tangkap momen,&#10;ceritakan rasanya."'
-                            />
-                            <p className="text-[9px] text-zinc-600 italic">Gunakan enter untuk baris baru.</p>
-                        </div>
-
-                        <div className="space-y-3">
-                            <label className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-500">Deskripsi Singkat</label>
-                            <textarea 
-                                className="w-full bg-black/50 border border-white/10 rounded-xl px-5 py-4 text-white text-sm outline-none focus:border-red-600 transition-all placeholder:text-zinc-700" 
-                                rows="4"
-                                value={configSitus.homeDescription || ''} 
-                                onChange={e => setConfigSitus({...configSitus, homeDescription: e.target.value})} 
-                                placeholder="Halo, saya..."
-                            />
-                        </div>
-                    </div>
-
                     <div className="space-y-3">
                       <label className="text-[10px] font-black uppercase tracking-[0.4em] text-red-500">Hero Background</label>
                       <div className="flex gap-4">
