@@ -64,6 +64,14 @@ const useDebounce = (value, delay) => {
   return debouncedValue;
 };
 
+// --- HELPER YOUTUBE ID ---
+const getYoutubeId = (url) => {
+  if (!url) return null;
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+  const match = url.match(regExp);
+  return (match && match[2].length === 11) ? match[2] : null;
+};
+
 // --- DATA STATIS ---
 const dataKeahlian = [
   { nama: "Premiere Pro", level: 90 },
@@ -196,7 +204,7 @@ const Navigasi = ({ pindahHalaman, halamanAktif, bukaModalAdmin, statusAdmin }) 
                 {item === 'beranda' ? 'Beranda' : item === 'portofolio' ? 'Karya' : 'Kontak'}
               </button>
             ))}
-            <button onClick={() => setMenuHpBuka(false)} className="absolute bottom-10 w-12 h-12 rounded-full border border-white/20 flex items-center justify-center text-zinc-500 hover:text-white hover:border-white">
+            <button onClick={() => setMenuHpBuka(false)} className="absolute bottom-10 w-12 h-12 rounded-full border border-white/20 flex items-center justify-center text-zinc-500 hover:text-white">
               <X className="w-6 h-6" />
             </button>
         </div>
@@ -212,14 +220,14 @@ const TampilanBeranda = ({ configSitus, pindahHalaman }) => (
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-0 z-0">
              <img src={configSitus.heroImage || "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?q=80&w=2071&auto=format&fit=crop"} className="w-full h-full object-cover opacity-40 scale-110 animate-[drift_30s_infinite_alternate]" alt="Hero Background" />
- </div> {/* <-- Penutup Wrapper Gambar */}
-
-  {/* Lapisan Gradien Gelap */}
-  <div className="absolute inset-0 z-20 bg-gradient-to-t from-[#050505] via-[#050505]/80 to-transparent"></div>
-
-</div> {/* <-- Penutup Background Utama (z-0) */}
-
-{/* Mulai Bagian Teks */}
+        </div>
+        <div className="absolute inset-0 z-10 mix-blend-overlay opacity-80">
+            <div className="absolute top-[-50%] left-[-50%] w-[200%] h-[200%] animate-[spin_60s_linear_infinite] opacity-50 bg-[conic-gradient(from_90deg_at_50%_50%,#00000000_50%,#ff0000_100%)]"></div>
+            <div className="absolute top-[-50%] right-[-50%] w-[200%] h-[200%] animate-[spin_45s_linear_infinite_reverse] opacity-30 bg-[conic-gradient(from_0deg_at_50%_50%,#00000000_50%,#0000ff_100%)]"></div>
+        </div>
+        <div className="absolute inset-0 z-20 bg-gradient-to-t from-[#050505] via-[#050505]/80 to-transparent"></div>
+        <div className="absolute inset-0 z-20 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
+      </div>
       <div className="relative z-30 text-center px-6 max-w-5xl mx-auto mt-20">
         <SectionWrapper>
           <div className="inline-flex items-center gap-3 px-6 py-2 border border-white/10 rounded-full bg-black/30 backdrop-blur-md mb-8 hover:bg-black/50 transition-colors shadow-2xl">
@@ -243,7 +251,8 @@ const TampilanBeranda = ({ configSitus, pindahHalaman }) => (
         <div className="relative group">
           <div className="absolute inset-0 bg-red-600 rounded-[3rem] blur-3xl opacity-20 group-hover:opacity-40 transition-opacity duration-1000 animate-pulse"></div>
           <div className="relative rounded-[3rem] overflow-hidden border border-white/10 aspect-[3/4]">
-            <img src={configSitus.aboutImage || "https://images.unsplash.com/photo-1542038784456-1ea0e93ca64b?q=80&w=1974&auto=format&fit=crop"} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-[1.5s] group-hover:scale-110" alt="Profile" />
+             {/* REVISI MOBILE: Tambahkan 'active:' untuk efek di HP */}
+            <img src={configSitus.aboutImage || "https://images.unsplash.com/photo-1542038784456-1ea0e93ca64b?q=80&w=1974&auto=format&fit=crop"} className="w-full h-full object-cover grayscale group-hover:grayscale-0 active:grayscale-0 transition-all duration-[1.5s] group-hover:scale-110 active:scale-110" alt="Profile" />
           </div>
         </div>
         <div className="space-y-10 text-left">
@@ -267,7 +276,7 @@ const TampilanBeranda = ({ configSitus, pindahHalaman }) => (
         </div>
       </SectionWrapper>
     </section>
-    {/* EXPERIENCE (Tambahkan ini di bawah section About) */}
+
     <section className="py-32 border-t border-white/5 bg-[#080808]/50 backdrop-blur-sm">
       <SectionWrapper className="max-w-6xl mx-auto px-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-20 gap-8 text-left">
@@ -277,17 +286,16 @@ const TampilanBeranda = ({ configSitus, pindahHalaman }) => (
           </div>
           <p className="text-zinc-500 max-w-sm text-right md:text-left italic text-sm">"Proses tidak akan pernah mengkhianati hasil akhir."</p>
         </div>
-        
         <div className="grid md:grid-cols-3 gap-8">
           {dataPengalaman.map((exp, idx) => (
-            <div key={idx} className="group relative p-8 md:p-10 bg-zinc-900/50 rounded-[2.5rem] border border-white/5 hover:border-red-600/50 transition-all duration-500 hover:-translate-y-2 backdrop-blur-md">
+            <div key={idx} className="group relative p-8 md:p-10 bg-zinc-900/50 rounded-[2.5rem] border border-white/5 hover:border-red-600/50 transition-all duration-500 hover:-translate-y-2 active:-translate-y-2 backdrop-blur-md">
               <div className="mb-8 flex justify-between items-start">
-                <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center text-zinc-400 group-hover:bg-red-600 group-hover:text-white transition-all duration-500 shadow-lg">
+                <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center text-zinc-400 group-hover:bg-red-600 group-active:bg-red-600 group-hover:text-white group-active:text-white transition-all duration-500 shadow-lg">
                    {idx === 0 ? <Camera className="w-5 h-5" /> : idx === 1 ? <Palette className="w-5 h-5" /> : <Play className="w-5 h-5" />}
                 </div>
                 <span className="text-[10px] font-black font-mono text-zinc-600 tracking-[0.2em] border border-zinc-800 px-3 py-1 rounded-full">{exp.tahun}</span>
               </div>
-              <h4 className="text-xl font-black tracking-tighter mb-2 group-hover:text-red-500 transition-colors uppercase italic">{exp.judul}</h4>
+              <h4 className="text-xl font-black tracking-tighter mb-2 group-hover:text-red-500 group-active:text-red-500 transition-colors uppercase italic">{exp.judul}</h4>
               <p className="text-[10px] text-zinc-500 uppercase tracking-[0.3em] font-bold mb-6">{exp.perusahaan}</p>
               <p className="text-zinc-400 leading-relaxed font-light text-sm">{exp.deskripsi}</p>
             </div>
@@ -299,45 +307,103 @@ const TampilanBeranda = ({ configSitus, pindahHalaman }) => (
 );
 
 // --- HALAMAN PORTOFOLIO ---
-const TampilanPortofolio = ({ daftarKarya, filter, setFilter, pindahHalaman }) => (
-  <div className="pt-40 pb-20 px-6 max-w-7xl mx-auto text-white min-h-screen relative z-10">
-    <SectionWrapper className="flex flex-col md:flex-row md:items-end justify-between mb-20 gap-10 text-left">
-      <div>
-        <button onClick={() => pindahHalaman('beranda')} className="flex items-center gap-3 text-zinc-500 hover:text-red-600 transition-all text-[10px] uppercase tracking-[0.3em] font-black mb-6 group italic">
-          <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Kembali
-        </button>
-        <h2 className="text-5xl md:text-8xl font-black tracking-tighter leading-none italic uppercase">Karya<span className="text-red-600">.</span></h2>
-      </div>
-      <div className="flex flex-wrap gap-2 p-1.5 bg-zinc-900/80 rounded-2xl border border-white/5 backdrop-blur-xl">
-        {kategoriKarya.map((cat) => (
-          <button key={cat} onClick={() => setFilter(cat === 'Semua' ? 'all' : cat.toLowerCase())} className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 ${((filter === 'all' && cat === 'Semua') || filter === cat.toLowerCase()) ? 'bg-red-600 text-white shadow-lg shadow-red-900/50' : 'text-zinc-500 hover:text-white hover:bg-white/5'}`}>
-            {cat}
+const TampilanPortofolio = ({ daftarKarya, filter, setFilter, pindahHalaman }) => {
+  const [selectedItem, setSelectedItem] = useState(null);
+
+  return (
+    <div className="pt-40 pb-20 px-6 max-w-7xl mx-auto text-white min-h-screen relative z-10">
+      <SectionWrapper className="flex flex-col md:flex-row md:items-end justify-between mb-20 gap-10 text-left">
+        <div>
+          <button onClick={() => pindahHalaman('beranda')} className="flex items-center gap-3 text-zinc-500 hover:text-red-600 transition-all text-[10px] uppercase tracking-[0.3em] font-black mb-6 group italic">
+            <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Kembali
           </button>
+          <h2 className="text-5xl md:text-8xl font-black tracking-tighter leading-none italic uppercase">Karya<span className="text-red-600">.</span></h2>
+        </div>
+        <div className="flex flex-wrap gap-2 p-1.5 bg-zinc-900/80 rounded-2xl border border-white/5 backdrop-blur-xl">
+          {kategoriKarya.map((cat) => (
+            <button key={cat} onClick={() => setFilter(cat === 'Semua' ? 'all' : cat.toLowerCase())} className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 ${((filter === 'all' && cat === 'Semua') || filter === cat.toLowerCase()) ? 'bg-red-600 text-white shadow-lg shadow-red-900/50' : 'text-zinc-500 hover:text-white hover:bg-white/5'}`}>
+              {cat}
+            </button>
+          ))}
+        </div>
+      </SectionWrapper>
+
+      {/* Grid Karya (Dengan OnClick untuk Modal) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 text-left">
+        {daftarKarya.filter(item => filter === 'all' || item.category === filter).map((item) => (
+          <SectionWrapper key={item.id}>
+            <div 
+                onClick={() => setSelectedItem(item)}
+                className="group relative bg-zinc-950/80 backdrop-blur-md rounded-[2.5rem] overflow-hidden border border-white/10 hover:border-red-600/50 h-full flex flex-col cursor-pointer active:scale-95 transition-all duration-300"
+            >
+              <div className="aspect-[4/3] overflow-hidden bg-zinc-900 relative">
+                <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent z-10 transition-colors"></div>
+                <img src={item.image} onError={(e) => e.target.src = "https://placehold.co/600x400/111/444?text=No+Image"} className="w-full h-full object-cover group-hover:scale-110 transition duration-[2s] opacity-80 group-hover:opacity-100" alt={item.title} />
+              </div>
+              <div className="p-8 flex flex-col flex-1 relative bg-[#0a0a0a]">
+                <div className="absolute -top-6 right-8 w-12 h-12 bg-red-600 rounded-2xl flex items-center justify-center text-white shadow-xl rotate-12 group-hover:rotate-0 transition-all duration-500 z-20">
+                  {item.category === 'video' ? <Play className="w-5 h-5 fill-current"/> : item.category === 'photo' ? <Camera className="w-5 h-5"/> : <Layout className="w-5 h-5"/>}
+                </div>
+                <span className="text-[9px] font-black uppercase text-zinc-500 mb-3 block">{item.category}</span>
+                <h3 className="text-2xl font-black tracking-tighter mb-4 uppercase italic text-white group-hover:text-red-500 line-clamp-2">{item.title}</h3>
+                <p className="text-zinc-400 text-sm font-light leading-relaxed line-clamp-3 mb-6">{item.description}</p>
+              </div>
+            </div>
+          </SectionWrapper>
         ))}
       </div>
-    </SectionWrapper>
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 text-left">
-      {daftarKarya.filter(item => filter === 'all' || item.category === filter).map((item) => (
-        <SectionWrapper key={item.id}>
-          <div className="group relative bg-zinc-950/80 backdrop-blur-md rounded-[2.5rem] overflow-hidden border border-white/10 hover:border-red-600/50 transition-all duration-500 h-full flex flex-col">
-            <div className="aspect-[4/3] overflow-hidden bg-zinc-900 relative">
-              <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent z-10 transition-colors"></div>
-              <img src={item.image} onError={(e) => e.target.src = "https://placehold.co/600x400/111/444?text=No+Image"} className="w-full h-full object-cover group-hover:scale-110 transition duration-[2s] opacity-80 group-hover:opacity-100" alt={item.title} />
-            </div>
-            <div className="p-8 flex flex-col flex-1 relative bg-[#0a0a0a]">
-              <div className="absolute -top-6 right-8 w-12 h-12 bg-red-600 rounded-2xl flex items-center justify-center text-white shadow-xl rotate-12 group-hover:rotate-0 transition-all duration-500 z-20">
-                {item.category === 'video' ? <Play className="w-5 h-5 fill-current"/> : item.category === 'photo' ? <Camera className="w-5 h-5"/> : <Layout className="w-5 h-5"/>}
-              </div>
-              <span className="text-[9px] font-black uppercase tracking-[0.4em] text-zinc-500 mb-3 block">{item.category}</span>
-              <h3 className="text-2xl font-black tracking-tighter mb-4 uppercase italic text-white group-hover:text-red-500 transition-colors line-clamp-2">{item.title}</h3>
-              <p className="text-zinc-400 text-sm font-light leading-relaxed line-clamp-3 mb-6">{item.description}</p>
-            </div>
+      
+      {daftarKarya.length === 0 && (
+          <div className="text-center py-32 border border-dashed border-white/10 rounded-[3rem] backdrop-blur-sm">
+              <p className="text-zinc-600 italic">Belum ada karya yang ditampilkan.</p>
           </div>
-        </SectionWrapper>
-      ))}
+      )}
+
+      {/* DETAIL MODAL PORTOFOLIO */}
+      {selectedItem && (
+        <div className="fixed inset-0 z-[120] bg-black/90 backdrop-blur-xl flex items-center justify-center p-4 animate-in fade-in duration-300" onClick={() => setSelectedItem(null)}>
+            <div className="relative w-full max-w-4xl bg-[#0a0a0a] border border-white/10 rounded-[3rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
+                
+                {/* Header Modal */}
+                <div className="absolute top-6 right-6 z-50">
+                    <button onClick={() => setSelectedItem(null)} className="w-10 h-10 rounded-full bg-black/50 border border-white/20 text-white flex items-center justify-center hover:bg-red-600 hover:border-red-600 transition-all">
+                        <X className="w-5 h-5"/>
+                    </button>
+                </div>
+
+                <div className="overflow-y-auto custom-scrollbar">
+                    {/* Media Display */}
+                    <div className="w-full aspect-video bg-black relative">
+                        {/* Jika ada YouTube URL dan kategori video/animasi, tampilkan embed */}
+                        {selectedItem.youtubeUrl && (selectedItem.category === 'video' || selectedItem.category === 'animation') ? (
+                           <iframe 
+                             className="w-full h-full" 
+                             src={`https://www.youtube.com/embed/${getYoutubeId(selectedItem.youtubeUrl)}?autoplay=1`} 
+                             title={selectedItem.title}
+                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                             allowFullScreen
+                           ></iframe>
+                        ) : (
+                           <img src={selectedItem.image} className="w-full h-full object-contain" alt={selectedItem.title} />
+                        )}
+                    </div>
+
+                    {/* Content Details */}
+                    <div className="p-8 md:p-12 space-y-6">
+                        <div>
+                             <span className="inline-block px-3 py-1 rounded-full border border-white/10 text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400 mb-4">{selectedItem.category}</span>
+                             <h3 className="text-3xl md:text-5xl font-black italic uppercase tracking-tighter text-white mb-6">{selectedItem.title}</h3>
+                             <div className="w-20 h-1 bg-red-600 rounded-full mb-8"></div>
+                             <p className="text-zinc-300 leading-relaxed font-light text-base md:text-lg whitespace-pre-wrap">{selectedItem.description}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+      )}
     </div>
-  </div>
-);
+  );
+};
 
 // --- HALAMAN KONTAK & AI ---
 const TampilanKontak = ({ modalAiBuka, setModalAiBuka, kueriAi, setKueriAi, tanganiAi, sedangKonsultasi, responAi }) => (
@@ -367,14 +433,14 @@ const TampilanKontak = ({ modalAiBuka, setModalAiBuka, kueriAi, setKueriAi, tang
           </div>
           <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-4">
              {responAi ? (
-                <div className="bg-zinc-900/50 border border-white/5 rounded-[2rem] p-6 animate-in slide-in-from-bottom-4">
+                <div className="bg-zinc-900/50 border border-white/5 rounded-[2rem] p-6">
                   <p className="text-sm md:text-base leading-relaxed text-zinc-300 font-light whitespace-pre-wrap">{responAi}</p>
                 </div>
-             ) : <p className="text-zinc-600 italic text-center py-10">Tanyakan konsep video atau ide visual...</p>}
+             ) : <p className="text-zinc-600 italic text-center py-10">Tanyakan ide visual...</p>}
           </div>
           <form onSubmit={tanganiAi} className="relative pt-4 border-t border-white/5">
-            <input className="w-full bg-zinc-900 border border-white/10 rounded-full px-6 py-4 text-white text-sm outline-none focus:border-blue-600" value={kueriAi} onChange={e => setKueriAi(e.target.value)} placeholder="Ide video cinematic..." disabled={sedangKonsultasi} />
-            <button type="submit" disabled={sedangKonsultasi || !kueriAi} className="absolute right-2 top-[22px] w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white shadow-lg">
+            <input className="w-full bg-zinc-900 border border-white/10 rounded-full px-6 py-4 text-white text-sm outline-none focus:border-blue-600" value={kueriAi} onChange={e => setKueriAi(e.target.value)} placeholder="Ide video..." disabled={sedangKonsultasi} />
+            <button type="submit" disabled={sedangKonsultasi || !kueriAi} className="absolute right-2 top-[22px] w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white">
               {sedangKonsultasi ? <Loader2 className="animate-spin w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
             </button>
           </form>
@@ -384,7 +450,6 @@ const TampilanKontak = ({ modalAiBuka, setModalAiBuka, kueriAi, setKueriAi, tang
   </div>
 );
 
-// --- PANEL ADMIN ---
 const PanelAdmin = ({ modalAdminBuka, setModalAdminBuka, statusAdmin, setStatusAdmin, inputKunciAdmin, setInputKunciAdmin, tanganiLoginAdmin, tabAdmin, setTabAdmin, itemBaru, setItemBaru, idEdit, setIdEdit, batalEdit, tanganiHapusKarya, mulaiEdit, daftarKarya, configSitus, setConfigSitus }) => {
   const [statusSimpan, setStatusSimpan] = useState('idle');
   const debouncedConfig = useDebounce(configSitus, 1500);
@@ -392,7 +457,7 @@ const PanelAdmin = ({ modalAdminBuka, setModalAdminBuka, statusAdmin, setStatusA
     if (!statusAdmin) return;
     const simpanConfig = async () => {
       try { await setDoc(getDocPath('site_config', 'home'), debouncedConfig, { merge: true }); } 
-      catch (err) { console.error(err); setStatusSimpan('error'); }
+      catch (err) { setStatusSimpan('error'); }
     };
     simpanConfig();
   }, [debouncedConfig, statusAdmin]);
@@ -408,35 +473,35 @@ const PanelAdmin = ({ modalAdminBuka, setModalAdminBuka, statusAdmin, setStatusA
     try {
       if (idEdit) { await setDoc(getDocPath('portfolio', idEdit), itemBaru, { merge: true }); } 
       else { await addDoc(getCollectionPath('portfolio'), { ...itemBaru, createdAt: new Date().toISOString() }); }
-      setItemBaru({ title: '', category: 'video', image: '', description: '' }); setIdEdit(null); setStatusSimpan('success'); setTimeout(() => setStatusSimpan('idle'), 2000);
+      setItemBaru({ title: '', category: 'video', image: '', description: '', youtubeUrl: '' }); setIdEdit(null); setStatusSimpan('success'); setTimeout(() => setStatusSimpan('idle'), 2000);
     } catch (err) { setStatusSimpan('error'); setTimeout(() => setStatusSimpan('idle'), 4000); }
   };
   if (!modalAdminBuka) return null;
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 md:p-6 bg-black/95 backdrop-blur-2xl animate-in fade-in duration-500">
+    <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 md:p-6 bg-black/95 backdrop-blur-2xl">
       <div className="relative w-full max-w-6xl bg-[#0a0a0a] border border-white/10 rounded-[3rem] shadow-2xl overflow-hidden flex flex-col h-[85vh]">
         {statusAdmin && (
-          <div className="absolute top-6 right-6 flex items-center gap-3 z-50 bg-black/50 backdrop-blur px-4 py-2 rounded-full border border-white/10">
-            {statusSimpan === 'loading' ? <><Loader2 className="w-3 h-3 animate-spin text-zinc-400"/><span className="text-zinc-400 text-[10px] uppercase tracking-widest">Saving...</span></> : statusSimpan === 'success' ? <><Check className="w-3 h-3 text-green-500"/><span className="text-green-500 text-[10px] uppercase tracking-widest">Saved</span></> : statusSimpan === 'error' ? <><AlertCircle className="w-3 h-3 text-red-500"/><span className="text-red-500 text-[10px] uppercase tracking-widest">Failed!</span></> : <span className="text-zinc-600 text-[10px] uppercase tracking-widest">Ready</span>}
+          <div className="absolute top-6 right-6 flex items-center gap-3 z-50 bg-black/50 px-4 py-2 rounded-full border border-white/10">
+            {statusSimpan === 'loading' ? <Loader2 className="w-3 h-3 animate-spin" /> : statusSimpan === 'success' ? <Check className="w-3 h-3 text-green-500" /> : statusSimpan === 'error' ? <AlertCircle className="w-3 h-3 text-red-500" /> : null}
           </div>
         )}
         {!statusAdmin ? (
           <div className="relative p-10 text-center space-y-8 flex-1 flex flex-col justify-center items-center">
-            <button onClick={() => setModalAdminBuka(false)} className="absolute top-8 right-8 w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-zinc-500 hover:text-white"><X className="w-5 h-5" /></button>
-            <div className="w-20 h-20 bg-red-600/10 rounded-3xl flex items-center justify-center text-red-600 shadow-2xl animate-pulse"><Lock className="w-10 h-10" /></div>
+            <button onClick={() => setModalAdminBuka(false)} className="absolute top-8 right-8 text-zinc-500 hover:text-white"><X className="w-5 h-5" /></button>
+            <Lock className="w-10 h-10 text-red-600 animate-pulse" />
             <form onSubmit={tanganiLoginAdmin} className="w-full max-w-xs space-y-4">
-              <input type="password" placeholder="Passkey..." className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-center outline-none focus:border-red-600 text-white font-mono tracking-widest" value={inputKunciAdmin} onChange={e => setInputKunciAdmin(e.target.value)} />
-              <button type="submit" className="w-full bg-red-600 py-4 rounded-2xl font-black uppercase text-xs text-white">Unlock Dashboard</button>
+              <input type="password" placeholder="Passkey..." className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-center outline-none focus:border-red-600 text-white" value={inputKunciAdmin} onChange={e => setInputKunciAdmin(e.target.value)} />
+              <button type="submit" className="w-full bg-red-600 py-4 rounded-2xl font-black uppercase text-xs text-white">Unlock</button>
             </form>
           </div>
         ) : (
           <div className="flex flex-1 overflow-hidden flex-col md:flex-row">
-            <div className="w-full md:w-64 border-b md:border-b-0 md:border-r border-white/5 bg-black/40 p-6 flex md:flex-col gap-2 overflow-x-auto">
-              <button onClick={() => setTabAdmin('portofolio')} className={`flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-black transition-all ${tabAdmin === 'portofolio' ? 'bg-red-600 text-white shadow-lg' : 'text-zinc-500 hover:text-white bg-white/5'}`}><ImageIcon className="w-4 h-4"/> Karya</button>
-              <button onClick={() => setTabAdmin('config')} className={`flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-black transition-all ${tabAdmin === 'config' ? 'bg-red-600 text-white shadow-lg' : 'text-zinc-500 hover:text-white bg-white/5'}`}><Layout className="w-4 h-4"/> Tampilan</button>
-              <div className="md:mt-auto md:pt-8 md:border-t md:border-white/5">
-                  <button onClick={() => setStatusAdmin(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl text-[10px] font-black text-red-500 uppercase tracking-widest border border-red-900/20"><Lock className="w-3 h-3"/> Lock</button>
-                  <button onClick={() => setModalAdminBuka(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl text-[10px] font-black text-zinc-500 uppercase border border-white/5"><X className="w-3 h-3"/> Close</button>
+            <div className="w-full md:w-64 border-b md:border-b-0 md:border-r border-white/5 bg-black/40 p-6 flex md:flex-col gap-2">
+              <button onClick={() => setTabAdmin('portofolio')} className={`flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-black ${tabAdmin === 'portofolio' ? 'bg-red-600 text-white' : 'text-zinc-500 hover:text-white bg-white/5'}`}><ImageIcon className="w-4 h-4"/> Karya</button>
+              <button onClick={() => setTabAdmin('config')} className={`flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-black ${tabAdmin === 'config' ? 'bg-red-600 text-white' : 'text-zinc-500 hover:text-white bg-white/5'}`}><Layout className="w-4 h-4"/> Tampilan</button>
+              <div className="md:mt-auto flex gap-2">
+                  <button onClick={() => setStatusAdmin(false)} className="flex-1 py-3 rounded-xl text-[10px] font-black text-red-500 border border-red-900/20">Lock</button>
+                  <button onClick={() => setModalAdminBuka(false)} className="flex-1 py-3 rounded-xl text-[10px] font-black text-zinc-500 border border-white/5">Close</button>
               </div>
             </div>
             <div className="flex-1 p-6 md:p-10 overflow-y-auto custom-scrollbar bg-[#050505]">
@@ -446,66 +511,59 @@ const PanelAdmin = ({ modalAdminBuka, setModalAdminBuka, statusAdmin, setStatusA
                     <form onSubmit={handleSimpanItem} className="space-y-5">
                       <div className="space-y-2">
                         <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-600">Judul Karya</label>
-                        <input type="text" placeholder="Ex: Cinematic Coffee" required className="w-full bg-zinc-900 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm outline-none focus:border-red-600" value={itemBaru.title} onChange={e => setItemBaru({...itemBaru, title: e.target.value})} />
+                        <input type="text" placeholder="Judul" className="w-full bg-zinc-900 border border-white/10 rounded-2xl px-5 py-4 text-white" value={itemBaru.title} onChange={e => setItemBaru({...itemBaru, title: e.target.value})} />
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <label className="text-[10px] font-bold uppercase text-zinc-600">Kategori</label>
                             <select className="w-full bg-zinc-900 border border-white/10 rounded-2xl px-5 py-4 text-white outline-none focus:border-red-600 text-xs font-bold uppercase" value={itemBaru.category} onChange={e => setItemBaru({...itemBaru, category: e.target.value})}>
-                                <option value="video">Video</option><option value="photo">Foto</option><option value="animation">Animasi</option>
+                              <option value="video">Video</option><option value="photo">Foto</option><option value="animation">Animasi</option>
                             </select>
                         </div>
                         <div className="space-y-2">
-                             <label className="text-[10px] font-bold uppercase text-zinc-600">Link Gambar</label>
-                             <input type="url" placeholder="https://..." required className="w-full bg-zinc-900 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm outline-none focus:border-red-600" value={itemBaru.image} onChange={e => setItemBaru({...itemBaru, image: e.target.value})} />
+                             <label className="text-[10px] font-bold uppercase text-zinc-600">Link Gambar (Thumbnail)</label>
+                             <input type="url" placeholder="https://..." required className="w-full bg-zinc-900 border border-white/10 rounded-2xl px-5 py-4 text-white" value={itemBaru.image} onChange={e => setItemBaru({...itemBaru, image: e.target.value})} />
                         </div>
                       </div>
+
+                      {/* --- UPDATE: INPUT LINK YOUTUBE KHUSUS VIDEO/ANIMASI --- */}
+                      {(itemBaru.category === 'video' || itemBaru.category === 'animation') && (
+                          <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+                             <label className="text-[10px] font-bold uppercase text-red-500">Link Youtube (Opsional)</label>
+                             <input type="url" placeholder="https://youtube.com/watch?v=..." className="w-full bg-zinc-900 border border-white/10 rounded-2xl px-5 py-4 text-white" value={itemBaru.youtubeUrl || ''} onChange={e => setItemBaru({...itemBaru, youtubeUrl: e.target.value})} />
+                             <p className="text-[9px] text-zinc-600">Jika diisi, video akan diputar saat detail dibuka.</p>
+                          </div>
+                      )}
+
                       <div className="space-y-2">
                          <label className="text-[10px] font-bold uppercase text-zinc-600">Deskripsi</label>
-                         <textarea placeholder="Ceritakan tentang karya ini..." rows="4" className="w-full bg-zinc-900 border border-white/10 rounded-2xl px-5 py-4 text-white outline-none resize-none text-sm" value={itemBaru.description} onChange={e => setItemBaru({...itemBaru, description: e.target.value})} />
+                         <textarea placeholder="Deskripsi" rows="4" className="w-full bg-zinc-900 border border-white/10 rounded-2xl px-5 py-4 text-white outline-none" value={itemBaru.description} onChange={e => setItemBaru({...itemBaru, description: e.target.value})} />
                       </div>
-                      <button type="submit" className="w-full bg-white text-black py-4 rounded-2xl font-black uppercase text-xs hover:bg-red-600 hover:text-white transition-all flex items-center justify-center gap-2"><Save className="w-4 h-4" /> {idEdit ? 'Simpan Perubahan' : 'Publikasikan'}</button>
+                      <button type="submit" className="w-full bg-white text-black py-4 rounded-2xl font-black uppercase text-xs hover:bg-red-600 hover:text-white transition-all"> {idEdit ? 'Simpan Perubahan' : 'Publikasikan'}</button>
+                      {idEdit && <button onClick={batalEdit} type="button" className="w-full text-zinc-500 text-[10px] uppercase mt-2">Batal Edit</button>}
                     </form>
                   </div>
-                  <div className="flex-1 space-y-6 border-t xl:border-t-0 xl:border-l border-white/5 pt-8 xl:pt-0 xl:pl-10">
-                    <h4 className="text-[10px] font-black uppercase text-zinc-500 tracking-[0.5em] italic">Database Arsip</h4>
-                    <div className="grid gap-3 overflow-y-auto max-h-[500px] custom-scrollbar">
-                      {daftarKarya.map(item => (
-                        <div key={item.id} className={`flex items-center gap-4 p-3 bg-zinc-900/50 rounded-2xl border transition-all ${idEdit === item.id ? 'border-red-600' : 'border-white/5'}`}>
-                          <img src={item.image} className="w-12 h-12 rounded-xl object-cover bg-zinc-800" alt="" />
-                          <div className="flex-1 min-w-0"><h5 className="font-bold truncate text-xs text-white uppercase">{item.title}</h5><span className="text-[9px] text-zinc-500 uppercase">{item.category}</span></div>
-                          <div className="flex gap-1">
-                              <button onClick={() => mulaiEdit(item)} className="p-2 text-zinc-500 hover:text-white"><Edit className="w-3.5 h-3.5" /></button>
-                              <button onClick={() => tanganiHapusKarya(item.id)} className="p-2 text-zinc-500 hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
-                          </div>
+                  <div className="flex-1 space-y-6 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+                    {daftarKarya.map(item => (
+                      <div key={item.id} className={`flex items-center gap-4 p-3 bg-zinc-900/50 rounded-2xl border ${idEdit === item.id ? 'border-red-600' : 'border-white/5'}`}>
+                        <img src={item.image} className="w-12 h-12 rounded-xl object-cover" alt="" />
+                        <div className="flex-1 truncate text-xs font-bold text-white uppercase">{item.title}</div>
+                        <div className="flex gap-1">
+                            <button onClick={() => mulaiEdit(item)} className="p-2 text-zinc-500 hover:text-white"><Edit className="w-3.5 h-3.5" /></button>
+                            <button onClick={() => tanganiHapusKarya(item.id)} className="p-2 text-zinc-500 hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
                         </div>
-                      ))}
-                    </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               ) : (
                 <div className="max-w-2xl mx-auto space-y-10">
-                  <div className="space-y-8">
-                    <div className="p-6 bg-zinc-900/50 rounded-3xl border border-white/5 space-y-6">
-                        <div className="flex items-center gap-3 text-white border-b border-white/5 pb-4 mb-4"><Type className="w-5 h-5 text-red-600" /><h4 className="text-sm font-bold uppercase tracking-wider">Konten Teks Beranda</h4></div>
-                        <div className="space-y-3">
-                            <label className="text-[10px] font-black uppercase text-zinc-500">Judul Utama</label>
-                            <textarea className="w-full bg-black/50 border border-white/10 rounded-xl px-5 py-4 text-white text-sm outline-none focus:border-red-600" rows="2" value={configSitus.homeCaption || ''} onChange={e => setConfigSitus({...configSitus, homeCaption: e.target.value})} />
-                        </div>
-                        <div className="space-y-3">
-                            <label className="text-[10px] font-black uppercase text-zinc-500">Deskripsi Singkat</label>
-                            <textarea className="w-full bg-black/50 border border-white/10 rounded-xl px-5 py-4 text-white text-sm outline-none focus:border-red-600" rows="4" value={configSitus.homeDescription || ''} onChange={e => setConfigSitus({...configSitus, homeDescription: e.target.value})} />
-                        </div>
-                    </div>
-                    <div className="space-y-3">
-                      <label className="text-[10px] font-black uppercase text-red-500">Hero Background URL</label>
-                      <input type="url" className="w-full bg-zinc-900 border border-white/10 rounded-xl px-5 py-4 text-white text-xs outline-none focus:border-red-600" value={configSitus.heroImage} onChange={e => setConfigSitus({...configSitus, heroImage: e.target.value})} />
-                    </div>
-                    <div className="space-y-3">
-                      <label className="text-[10px] font-black uppercase text-red-500">Foto Profil URL</label>
-                      <input type="url" className="w-full bg-zinc-900 border border-white/10 rounded-xl px-5 py-4 text-white text-xs outline-none focus:border-red-600" value={configSitus.aboutImage} onChange={e => setConfigSitus({...configSitus, aboutImage: e.target.value})} />
-                    </div>
-                    <button onClick={simpanConfigManual} className="w-full bg-white text-black py-4 rounded-2xl font-black uppercase text-xs hover:bg-red-600 hover:text-white transition-all flex items-center justify-center gap-2"><Save className="w-4 h-4" /> Simpan Perubahan Tampilan</button>
+                  <div className="p-6 bg-zinc-900/50 rounded-3xl border border-white/5 space-y-6">
+                      <textarea className="w-full bg-black/50 border border-white/10 rounded-xl px-5 py-4 text-white" rows="2" placeholder="Caption Utama" value={configSitus.homeCaption || ''} onChange={e => setConfigSitus({...configSitus, homeCaption: e.target.value})} />
+                      <textarea className="w-full bg-black/50 border border-white/10 rounded-xl px-5 py-4 text-white" rows="4" placeholder="Deskripsi Home" value={configSitus.homeDescription || ''} onChange={e => setConfigSitus({...configSitus, homeDescription: e.target.value})} />
+                      <input type="url" className="w-full bg-zinc-900 border border-white/10 rounded-xl px-5 py-2 text-white" placeholder="Hero Image URL" value={configSitus.heroImage} onChange={e => setConfigSitus({...configSitus, heroImage: e.target.value})} />
+                      <input type="url" className="w-full bg-zinc-900 border border-white/10 rounded-xl px-5 py-2 text-white" placeholder="About Image URL" value={configSitus.aboutImage} onChange={e => setConfigSitus({...configSitus, aboutImage: e.target.value})} />
+                      <button onClick={simpanConfigManual} className="w-full bg-white text-black py-4 rounded-2xl font-black uppercase text-xs hover:bg-red-600 hover:text-white transition-all">Simpan Tampilan</button>
                   </div>
                 </div>
               )}
@@ -530,12 +588,7 @@ const App = () => {
   const [responAi, setResponAi] = useState('');
   const [sedangKonsultasi, setSedangKonsultasi] = useState(false);
   const [daftarKarya, setDaftarKarya] = useState([]);
-  const [configSitus, setConfigSitus] = useState({
-    heroImage: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop',
-    aboutImage: 'https://images.unsplash.com/photo-1542038784456-1ea0e93ca64b?q=80&w=1974&auto=format&fit=crop',
-    homeCaption: '"Tangkap momen,\nceritakan rasanya."',
-    homeDescription: ''
-  });
+  const [configSitus, setConfigSitus] = useState({ heroImage: '', aboutImage: '', homeCaption: '', homeDescription: '' });
   const [tabAdmin, setTabAdmin] = useState('portofolio');
   const [itemBaru, setItemBaru] = useState({ title: '', category: 'video', image: '', description: '' });
   const [idEdit, setIdEdit] = useState(null);
@@ -545,10 +598,10 @@ const App = () => {
       try {
         if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) { await signInWithCustomToken(auth, __initial_auth_token); } 
         else { await signInAnonymously(auth); }
-      } catch (error) { console.error(error); }
+      } catch (error) {}
     };
     initAuth();
-    const unsub = onAuthStateChanged(auth, (user) => setPengguna(user));
+    const unsub = onAuthStateChanged(auth, (u) => setPengguna(u));
     return () => unsub();
   }, []);
 
@@ -571,15 +624,15 @@ const App = () => {
   };
   const tanganiHapusKarya = async (id) => {
     if (!pengguna || !statusAdmin) return;
-    try { await deleteDoc(getDocPath('portfolio', id)); } catch (err) { console.error(err); }
+    try { await deleteDoc(getDocPath('portfolio', id)); } catch (err) {}
   };
-  const mulaiEdit = (item) => { setItemBaru({ title: item.title, category: item.category, image: item.image, description: item.description }); setIdEdit(item.id); };
+  const mulaiEdit = (item) => { setItemBaru({ title: item.title, category: item.category, image: item.image, description: item.description, youtubeUrl: item.youtubeUrl || '' }); setIdEdit(item.id); };
   const batalEdit = () => { setItemBaru({ title: '', category: 'video', image: '', description: '' }); setIdEdit(null); };
   const tanganiAi = async (e) => {
     e.preventDefault();
     if (!kueriAi.trim()) return;
     setSedangKonsultasi(true); setResponAi(""); 
-    const j = await generateGeminiContent(`Jawab sebagai RFX Visual: ${kueriAi}`);
+    const j = await generateGeminiContent(`Jawab singkat: ${kueriAi}`);
     setResponAi(j); setSedangKonsultasi(false);
   };
 
@@ -592,8 +645,6 @@ const App = () => {
         @keyframes blob { 0% { transform: translate(0px, 0px) scale(1); } 33% { transform: translate(30px, -50px) scale(1.1); } 66% { transform: translate(-20px, 20px) scale(0.9); } 100% { transform: translate(0px, 0px) scale(1); } }
         @keyframes drift { 0% { transform: scale(1.1); } 100% { transform: scale(1.2) translate(-2%, -2%); } }
         .animate-blob { animation: blob 10s infinite; }
-        .animation-delay-2000 { animation-delay: 2s; }
-        .animation-delay-4000 { animation-delay: 4s; }
       `}</style>
       <FloatingShapes />
       <Navigasi pindahHalaman={pindahHalaman} halamanAktif={halamanAktif} bukaModalAdmin={setModalAdminBuka} statusAdmin={statusAdmin} />
@@ -606,7 +657,7 @@ const App = () => {
       <footer className="py-20 border-t border-white/5 text-center bg-black/50 relative z-10">
         <SectionWrapper>
           <div className="text-2xl font-black italic mb-6 opacity-30">RFX<span className="text-red-600">.</span></div>
-          <p className="text-[9px] text-zinc-700 uppercase tracking-[0.5em] font-black italic">&copy; 2026 RFX VISUAL • MALANG</p>
+          <p className="text-[9px] text-zinc-700 uppercase tracking-[0.5em] font-black italic">&copy; 2026 RFX VISUAL</p>
         </SectionWrapper>
       </footer>
     </div>
