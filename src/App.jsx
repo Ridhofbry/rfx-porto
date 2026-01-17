@@ -42,35 +42,23 @@ try {
   
   if (apiKey) {
     // JIKA DI VERCEL/LOCAL (Ada .env): Pakai config dari env
-    firebaseConfig = {
-      apiKey: apiKey,
-      authDomain: getEnv('VITE_FIREBASE_AUTH_DOMAIN') || getEnv('REACT_APP_FIREBASE_AUTH_DOMAIN'),
-      projectId: getEnv('VITE_FIREBASE_PROJECT_ID') || getEnv('REACT_APP_FIREBASE_PROJECT_ID'),
-      storageBucket: getEnv('VITE_FIREBASE_STORAGE_BUCKET') || getEnv('REACT_APP_FIREBASE_STORAGE_BUCKET'),
-      messagingSenderId: getEnv('VITE_FIREBASE_MESSAGING_SENDER_ID') || getEnv('REACT_APP_FIREBASE_MESSAGING_SENDER_ID'),
-      appId: getEnv('VITE_FIREBASE_APP_ID') || getEnv('REACT_APP_FIREBASE_APP_ID')
-    };
-  } else if (typeof __firebase_config !== 'undefined') {
-    // JIKA DI PREVIEW CANVAS INI: Pakai config internal yang aman
-    firebaseConfig = JSON.parse(__firebase_config);
-    if (!appId && typeof __app_id !== 'undefined') {
-        appId = __app_id;
-    }
-  } else {
-    console.error("CRITICAL: Konfigurasi Firebase tidak ditemukan! Pastikan Environment Variables sudah diset di Vercel.");
-  }
-} catch (e) {
-  console.error("Error initializing config:", e);
-}
+const firebaseConfig = {
+  apiKey: getEnv('VITE_FIREBASE_API_KEY'),
+  authDomain: getEnv('VITE_FIREBASE_AUTH_DOMAIN'),
+  projectId: getEnv('VITE_FIREBASE_PROJECT_ID'),
+  storageBucket: getEnv('VITE_FIREBASE_STORAGE_BUCKET'),
+  messagingSenderId: getEnv('VITE_FIREBASE_MESSAGING_SENDER_ID'),
+  appId: getEnv('VITE_FIREBASE_APP_ID')
+};
 
-// Inisialisasi App hanya jika config ada
-const app = initializeApp(firebaseConfig || {}); 
+// Fallback aman agar preview di sini tidak crash jika config kosong
+const finalFirebaseConfig = firebaseConfig.apiKey ? firebaseConfig : (typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {});
+
+const app = initializeApp(finalFirebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-
-// Default App ID jika masih kosong (Hanya nama folder, bukan kredensial)
-if (!appId) appId = 'rfx-porto-prod';
-
+const appId = "rfx-femmora-production";
+    
 // --- UTILITAS FIRESTORE ---
 const getCollectionPath = (colName) => collection(db, 'artifacts', appId, 'public', 'data', colName);
 const getDocPath = (colName, docId) => doc(db, 'artifacts', appId, 'public', 'data', colName, docId);
@@ -83,7 +71,7 @@ const useDebounce = (value, delay) => {
   }, [value, delay]);
   return debouncedValue;
 };
-
+    
 // --- DATA STATIS ---
 const dataKeahlian = [
   { nama: "Premiere Pro", level: 90 },
