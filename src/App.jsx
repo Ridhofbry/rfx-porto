@@ -212,7 +212,14 @@ const TampilanBeranda = ({ configSitus, pindahHalaman }) => (
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-0 z-0">
              <img src={configSitus.heroImage || "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?q=80&w=2071&auto=format&fit=crop"} className="w-full h-full object-cover opacity-40 scale-110 animate-[drift_30s_infinite_alternate]" alt="Hero Background" />
-        </div>
+ </div> {/* <-- Penutup Wrapper Gambar */}
+
+  {/* Lapisan Gradien Gelap */}
+  <div className="absolute inset-0 z-20 bg-gradient-to-t from-[#050505] via-[#050505]/80 to-transparent"></div>
+
+</div> {/* <-- Penutup Background Utama (z-0) */}
+
+{/* Mulai Bagian Teks */}
       <div className="relative z-30 text-center px-6 max-w-5xl mx-auto mt-20">
         <SectionWrapper>
           <div className="inline-flex items-center gap-3 px-6 py-2 border border-white/10 rounded-full bg-black/30 backdrop-blur-md mb-8 hover:bg-black/50 transition-colors shadow-2xl">
