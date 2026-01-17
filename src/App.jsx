@@ -84,7 +84,7 @@ const kategoriKarya = ["Semua", "Video", "Foto", "Animasi"];
 const generateGeminiContent = async (prompt) => {
   try {
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-preview-09-2025:generateContent?key=${GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -264,6 +264,34 @@ const TampilanBeranda = ({ configSitus, pindahHalaman }) => (
               {dataKeahlian.map((item) => <ItemKeahlian key={item.nama} keahlian={item} />)}
             </div>
           </div>
+        </div>
+      </SectionWrapper>
+    </section>
+    {/* EXPERIENCE (Tambahkan ini di bawah section About) */}
+    <section className="py-32 border-t border-white/5 bg-[#080808]/50 backdrop-blur-sm">
+      <SectionWrapper className="max-w-6xl mx-auto px-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-20 gap-8 text-left">
+          <div className="space-y-2">
+             <h3 className="text-xs font-black uppercase tracking-[0.5em] text-red-600 font-mono">My Journey</h3>
+             <h2 className="text-5xl md:text-7xl font-black tracking-tighter uppercase italic leading-none">Pengalaman<span className="text-red-600">.</span></h2>
+          </div>
+          <p className="text-zinc-500 max-w-sm text-right md:text-left italic text-sm">"Proses tidak akan pernah mengkhianati hasil akhir."</p>
+        </div>
+        
+        <div className="grid md:grid-cols-3 gap-8">
+          {dataPengalaman.map((exp, idx) => (
+            <div key={idx} className="group relative p-8 md:p-10 bg-zinc-900/50 rounded-[2.5rem] border border-white/5 hover:border-red-600/50 transition-all duration-500 hover:-translate-y-2 backdrop-blur-md">
+              <div className="mb-8 flex justify-between items-start">
+                <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center text-zinc-400 group-hover:bg-red-600 group-hover:text-white transition-all duration-500 shadow-lg">
+                   {idx === 0 ? <Camera className="w-5 h-5" /> : idx === 1 ? <Palette className="w-5 h-5" /> : <Play className="w-5 h-5" />}
+                </div>
+                <span className="text-[10px] font-black font-mono text-zinc-600 tracking-[0.2em] border border-zinc-800 px-3 py-1 rounded-full">{exp.tahun}</span>
+              </div>
+              <h4 className="text-xl font-black tracking-tighter mb-2 group-hover:text-red-500 transition-colors uppercase italic">{exp.judul}</h4>
+              <p className="text-[10px] text-zinc-500 uppercase tracking-[0.3em] font-bold mb-6">{exp.perusahaan}</p>
+              <p className="text-zinc-400 leading-relaxed font-light text-sm">{exp.deskripsi}</p>
+            </div>
+          ))}
         </div>
       </SectionWrapper>
     </section>
