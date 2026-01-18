@@ -221,6 +221,13 @@ const TampilanBeranda = ({ configSitus, pindahHalaman }) => (
         <div className="absolute inset-0 z-0">
              <img src={configSitus.heroImage || "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?q=80&w=2071&auto=format&fit=crop"} className="w-full h-full object-cover opacity-40 scale-110 animate-[drift_30s_infinite_alternate]" alt="Hero Background" />
         </div>
+        <div className="absolute inset-0 z-10 mix-blend-overlay opacity-80">
+            <div className="absolute top-[-50%] left-[-50%] w-[200%] h-[200%] animate-[spin_60s_linear_infinite] opacity-50 bg-[conic-gradient(from_90deg_at_50%_50%,#00000000_50%,#ff0000_100%)]"></div>
+            <div className="absolute top-[-50%] right-[-50%] w-[200%] h-[200%] animate-[spin_45s_linear_infinite_reverse] opacity-30 bg-[conic-gradient(from_0deg_at_50%_50%,#00000000_50%,#0000ff_100%)]"></div>
+        </div>
+        <div className="absolute inset-0 z-20 bg-gradient-to-t from-[#050505] via-[#050505]/80 to-transparent"></div>
+        <div className="absolute inset-0 z-20 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
+      </div>
       <div className="relative z-30 text-center px-6 max-w-5xl mx-auto mt-20">
         <SectionWrapper>
           <div className="inline-flex items-center gap-3 px-6 py-2 border border-white/10 rounded-full bg-black/30 backdrop-blur-md mb-8 hover:bg-black/50 transition-colors shadow-2xl">
@@ -299,7 +306,7 @@ const TampilanBeranda = ({ configSitus, pindahHalaman }) => (
   </div>
 );
 
-// --- HALAMAN PORTOFOLIO ---
+// --- HALAMAN PORTOFOLIO (FIXED FILTER) ---
 const TampilanPortofolio = ({ daftarKarya, filter, setFilter, pindahHalaman }) => {
   const [selectedItem, setSelectedItem] = useState(null);
 
@@ -313,11 +320,26 @@ const TampilanPortofolio = ({ daftarKarya, filter, setFilter, pindahHalaman }) =
           <h2 className="text-5xl md:text-8xl font-black tracking-tighter leading-none italic uppercase">Karya<span className="text-red-600">.</span></h2>
         </div>
         <div className="flex flex-wrap gap-2 p-1.5 bg-zinc-900/80 rounded-2xl border border-white/5 backdrop-blur-xl">
-          {kategoriKarya.map((cat) => (
-            <button key={cat} onClick={() => setFilter(cat === 'Semua' ? 'all' : cat.toLowerCase())} className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 ${((filter === 'all' && cat === 'Semua') || filter === cat.toLowerCase()) ? 'bg-red-600 text-white shadow-lg shadow-red-900/50' : 'text-zinc-500 hover:text-white hover:bg-white/5'}`}>
-              {cat}
-            </button>
-          ))}
+          {/* FIX: Mapping kategori UI (Indo) ke value Database (Inggris) */}
+          {kategoriKarya.map((cat) => {
+            // Tentukan value filter yang sesuai dengan database
+            let filterValue = 'all';
+            if (cat === 'Video') filterValue = 'video';
+            else if (cat === 'Foto') filterValue = 'photo';
+            else if (cat === 'Animasi') filterValue = 'animation';
+
+            const isActive = filter === filterValue;
+
+            return (
+              <button 
+                key={cat} 
+                onClick={() => setFilter(filterValue)} 
+                className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 ${isActive ? 'bg-red-600 text-white shadow-lg shadow-red-900/50' : 'text-zinc-500 hover:text-white hover:bg-white/5'}`}
+              >
+                {cat}
+              </button>
+            );
+          })}
         </div>
       </SectionWrapper>
 
