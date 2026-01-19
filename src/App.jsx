@@ -252,7 +252,7 @@ const TampilanBeranda = ({ configSitus, pindahHalaman }) => (
           <div className="absolute inset-0 bg-red-600 rounded-[3rem] blur-3xl opacity-20 group-hover:opacity-40 transition-opacity duration-1000 animate-pulse"></div>
           <div className="relative rounded-[3rem] overflow-hidden border border-white/10 aspect-[3/4]">
              {/* REVISI MOBILE: Tambahkan 'active:' untuk efek di HP */}
-            <img src={configSitus.aboutImage || "https://images.unsplash.com/photo-1542038784456-1ea0e93ca64b?q=80&w=1974&auto=format&fit=crop"} className="w-full h-full object-cover grayscale group-hover:grayscale-0 active:grayscale-0 transition-all duration-[1.5s] group-hover:scale-110 active:scale-110" alt="Profile" />
+            <img src={configSitus.aboutImage || "https://cdn.discordapp.com/attachments/1425254107983384690/1461981878667182140/DSC08146_1.jpg?ex=696e827a&is=696d30fa&hm=8024f07f570228c065821fcde222e7f60310f3fd755d30869ae48bb3d482d2db&"} className="w-full h-full object-cover grayscale group-hover:grayscale-0 active:grayscale-0 transition-all duration-[1.5s] group-hover:scale-110 active:scale-110" alt="Profile" />
           </div>
         </div>
         <div className="space-y-10 text-left">
