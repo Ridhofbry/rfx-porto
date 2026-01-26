@@ -1,76 +1,13 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { initializeApp } from 'firebase/app';
-import { 
-  getFirestore, collection, doc, setDoc, addDoc, 
-  deleteDoc, onSnapshot, query, orderBy 
-} from 'firebase/firestore';
-import { 
-  getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged 
-} from 'firebase/auth';
+import React, { useState, useEffect, useCallback } from 'react';
+import { supabase } from './supabaseClient'; // Import koneksi Supabase
 import { 
   Instagram, Youtube, Mail, ArrowRight, ChevronLeft, 
   ExternalLink, Trash2, Edit, X, Lock, Unlock, Sparkles, 
-  Loader2, Camera, Play, Palette, Layout, Image as ImageIcon, Menu, Check, Save, Type, AlertCircle
+  Loader2, Camera, Play, Palette, Layout, Image as ImageIcon, Menu, Check, AlertCircle
 } from 'lucide-react';
 
-// --- UTILITAS ENVIRONMENT VARIABLES ---
-const getEnv = (key) => {
-  if (typeof process !== 'undefined' && process.env && process.env[key]) {
-    return process.env[key];
-  }
-  try {
-    if (import.meta && import.meta.env && import.meta.env[key]) {
-      return import.meta.env[key];
-    }
-  } catch (e) {}
-  return '';
-};
-
-// --- KONFIGURASI FIREBASE ---
-let firebaseConfig;
-try {
-  const apiKey = getEnv('VITE_FIREBASE_API_KEY') || getEnv('REACT_APP_FIREBASE_API_KEY');
-  if (apiKey) {
-    firebaseConfig = {
-      apiKey: apiKey,
-      authDomain: getEnv('VITE_FIREBASE_AUTH_DOMAIN'),
-      projectId: getEnv('VITE_FIREBASE_PROJECT_ID'),
-      storageBucket: getEnv('VITE_FIREBASE_STORAGE_BUCKET'),
-      messagingSenderId: getEnv('VITE_FIREBASE_MESSAGING_SENDER_ID'),
-      appId: getEnv('VITE_FIREBASE_APP_ID')
-    };
-  } else if (typeof __firebase_config !== 'undefined') {
-    firebaseConfig = JSON.parse(__firebase_config);
-  }
-} catch (e) {}
-
-const GEMINI_API_KEY = getEnv('VITE_GEMINI_API_KEY');
-const finalFirebaseConfig = firebaseConfig && firebaseConfig.apiKey ? firebaseConfig : (typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {});
-const app = initializeApp(finalFirebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const appId = "rfx-femmora-production";
-
-// --- UTILITAS FIRESTORE ---
-const getCollectionPath = (colName) => collection(db, 'artifacts', appId, 'public', 'data', colName);
-const getDocPath = (colName, docId) => doc(db, 'artifacts', appId, 'public', 'data', colName, docId);
-
-const useDebounce = (value, delay) => {
-  const [debouncedValue, setDebouncedValue] = useState(value);
-  useEffect(() => {
-    const handler = setTimeout(() => setDebouncedValue(value), delay);
-    return () => clearTimeout(handler);
-  }, [value, delay]);
-  return debouncedValue;
-};
-
-// --- HELPER YOUTUBE ID ---
-const getYoutubeId = (url) => {
-  if (!url) return null;
-  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
-  const match = url.match(regExp);
-  return (match && match[2].length === 11) ? match[2] : null;
-};
+// --- KONFIGURASI API ---
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
 // --- DATA STATIS ---
 const dataKeahlian = [
@@ -90,6 +27,7 @@ const kategoriKarya = ["Semua", "Video", "Foto", "Animasi"];
 
 // --- FUNGSI GEMINI AI ---
 const generateGeminiContent = async (prompt) => {
+  if (!GEMINI_API_KEY) return "API Key Gemini belum diatur.";
   try {
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${GEMINI_API_KEY}`,
@@ -99,15 +37,21 @@ const generateGeminiContent = async (prompt) => {
         body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
       }
     );
-    if (response.status === 429) {
-      return "Waduh, Rexa lagi pusing nih kebanyakan yang nanya 😵. Kuota otakku habis hari ini. Coba tanya lagi besok atau hubungi Admin manusia ya!";
-    }
+    if (response.status === 429) return "Waduh, Rexa lagi pusing nih (Limit Reached). Coba besok ya!";
     const data = await response.json();
     return data.candidates?.[0]?.content?.parts?.[0]?.text || "Maaf, Rexa lagi bingung mau jawab apa.";
   } catch (error) {
     console.error("Gemini Error:", error);
     return "Gagal menghubungi Rexa. Cek koneksi kamu ya.";
   }
+};
+
+// --- HELPER YOUTUBE ID ---
+const getYoutubeId = (url) => {
+  if (!url) return null;
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+  const match = url.match(regExp);
+  return (match && match[2].length === 11) ? match[2] : null;
 };
 
 // --- KOMPONEN BACKGROUND DINAMIS ---
@@ -251,7 +195,6 @@ const TampilanBeranda = ({ configSitus, pindahHalaman }) => (
         <div className="relative group">
           <div className="absolute inset-0 bg-red-600 rounded-[3rem] blur-3xl opacity-20 group-hover:opacity-40 transition-opacity duration-1000 animate-pulse"></div>
           <div className="relative rounded-[3rem] overflow-hidden border border-white/10 aspect-[3/4]">
-             {/* REVISI MOBILE: Tambahkan 'active:' untuk efek di HP */}
             <img src={configSitus.aboutImage || "https://cdn.discordapp.com/attachments/1425254107983384690/1461981878667182140/DSC08146_1.jpg?ex=696e827a&is=696d30fa&hm=8024f07f570228c065821fcde222e7f60310f3fd755d30869ae48bb3d482d2db&"} className="w-full h-full object-cover grayscale group-hover:grayscale-0 active:grayscale-0 transition-all duration-[1.5s] group-hover:scale-110 active:scale-110" alt="Profile" />
           </div>
         </div>
@@ -306,7 +249,7 @@ const TampilanBeranda = ({ configSitus, pindahHalaman }) => (
   </div>
 );
 
-// --- HALAMAN PORTOFOLIO (FIXED FILTER) ---
+// --- HALAMAN PORTOFOLIO ---
 const TampilanPortofolio = ({ daftarKarya, filter, setFilter, pindahHalaman }) => {
   const [selectedItem, setSelectedItem] = useState(null);
 
@@ -320,22 +263,14 @@ const TampilanPortofolio = ({ daftarKarya, filter, setFilter, pindahHalaman }) =
           <h2 className="text-5xl md:text-8xl font-black tracking-tighter leading-none italic uppercase">Karya<span className="text-red-600">.</span></h2>
         </div>
         <div className="flex flex-wrap gap-2 p-1.5 bg-zinc-900/80 rounded-2xl border border-white/5 backdrop-blur-xl">
-          {/* FIX: Mapping kategori UI (Indo) ke value Database (Inggris) */}
           {kategoriKarya.map((cat) => {
-            // Tentukan value filter yang sesuai dengan database
             let filterValue = 'all';
             if (cat === 'Video') filterValue = 'video';
             else if (cat === 'Foto') filterValue = 'photo';
             else if (cat === 'Animasi') filterValue = 'animation';
-
             const isActive = filter === filterValue;
-
             return (
-              <button 
-                key={cat} 
-                onClick={() => setFilter(filterValue)} 
-                className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 ${isActive ? 'bg-red-600 text-white shadow-lg shadow-red-900/50' : 'text-zinc-500 hover:text-white hover:bg-white/5'}`}
-              >
+              <button key={cat} onClick={() => setFilter(filterValue)} className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 ${isActive ? 'bg-red-600 text-white shadow-lg shadow-red-900/50' : 'text-zinc-500 hover:text-white hover:bg-white/5'}`}>
                 {cat}
               </button>
             );
@@ -343,14 +278,10 @@ const TampilanPortofolio = ({ daftarKarya, filter, setFilter, pindahHalaman }) =
         </div>
       </SectionWrapper>
 
-      {/* Grid Karya (Dengan OnClick untuk Modal) */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 text-left">
         {daftarKarya.filter(item => filter === 'all' || item.category === filter).map((item) => (
           <SectionWrapper key={item.id}>
-            <div 
-                onClick={() => setSelectedItem(item)}
-                className="group relative bg-zinc-950/80 backdrop-blur-md rounded-[2.5rem] overflow-hidden border border-white/10 hover:border-red-600/50 h-full flex flex-col cursor-pointer active:scale-95 transition-all duration-300"
-            >
+            <div onClick={() => setSelectedItem(item)} className="group relative bg-zinc-950/80 backdrop-blur-md rounded-[2.5rem] overflow-hidden border border-white/10 hover:border-red-600/50 h-full flex flex-col cursor-pointer active:scale-95 transition-all duration-300">
               <div className="aspect-[4/3] overflow-hidden bg-zinc-900 relative">
                 <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent z-10 transition-colors"></div>
                 <img src={item.image} onError={(e) => e.target.src = "https://placehold.co/600x400/111/444?text=No+Image"} className="w-full h-full object-cover group-hover:scale-110 transition duration-[2s] opacity-80 group-hover:opacity-100" alt={item.title} />
@@ -367,29 +298,23 @@ const TampilanPortofolio = ({ daftarKarya, filter, setFilter, pindahHalaman }) =
           </SectionWrapper>
         ))}
       </div>
-      
+       
       {daftarKarya.length === 0 && (
           <div className="text-center py-32 border border-dashed border-white/10 rounded-[3rem] backdrop-blur-sm">
               <p className="text-zinc-600 italic">Belum ada karya yang ditampilkan.</p>
           </div>
       )}
 
-      {/* DETAIL MODAL PORTOFOLIO */}
       {selectedItem && (
         <div className="fixed inset-0 z-[120] bg-black/90 backdrop-blur-xl flex items-center justify-center p-4 animate-in fade-in duration-300" onClick={() => setSelectedItem(null)}>
             <div className="relative w-full max-w-4xl bg-[#0a0a0a] border border-white/10 rounded-[3rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
-                
-                {/* Header Modal */}
                 <div className="absolute top-6 right-6 z-50">
                     <button onClick={() => setSelectedItem(null)} className="w-10 h-10 rounded-full bg-black/50 border border-white/20 text-white flex items-center justify-center hover:bg-red-600 hover:border-red-600 transition-all">
                         <X className="w-5 h-5"/>
                     </button>
                 </div>
-
                 <div className="overflow-y-auto custom-scrollbar">
-                    {/* Media Display */}
                     <div className="w-full aspect-video bg-black relative">
-                        {/* Jika ada YouTube URL dan kategori video/animasi, tampilkan embed */}
                         {selectedItem.youtubeUrl && (selectedItem.category === 'video' || selectedItem.category === 'animation') ? (
                            <iframe 
                              className="w-full h-full" 
@@ -402,8 +327,6 @@ const TampilanPortofolio = ({ daftarKarya, filter, setFilter, pindahHalaman }) =
                            <img src={selectedItem.image} className="w-full h-full object-contain" alt={selectedItem.title} />
                         )}
                     </div>
-
-                    {/* Content Details */}
                     <div className="p-8 md:p-12 space-y-6">
                         <div>
                              <span className="inline-block px-3 py-1 rounded-full border border-white/10 text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400 mb-4">{selectedItem.category}</span>
@@ -447,11 +370,11 @@ const TampilanKontak = ({ modalAiBuka, setModalAiBuka, kueriAi, setKueriAi, tang
             <button onClick={() => setModalAiBuka(false)} className="text-zinc-500 hover:text-white"><X className="w-4 h-4" /></button>
           </div>
           <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-4">
-             {responAi ? (
+              {responAi ? (
                 <div className="bg-zinc-900/50 border border-white/5 rounded-[2rem] p-6">
                   <p className="text-sm md:text-base leading-relaxed text-zinc-300 font-light whitespace-pre-wrap">{responAi}</p>
                 </div>
-             ) : <p className="text-zinc-600 italic text-center py-10">Tanyakan ide visual...</p>}
+              ) : <p className="text-zinc-600 italic text-center py-10">Tanyakan ide visual...</p>}
           </div>
           <form onSubmit={tanganiAi} className="relative pt-4 border-t border-white/5">
             <input className="w-full bg-zinc-900 border border-white/10 rounded-full px-6 py-4 text-white text-sm outline-none focus:border-blue-600" value={kueriAi} onChange={e => setKueriAi(e.target.value)} placeholder="Ide video..." disabled={sedangKonsultasi} />
@@ -465,41 +388,21 @@ const TampilanKontak = ({ modalAiBuka, setModalAiBuka, kueriAi, setKueriAi, tang
   </div>
 );
 
-const PanelAdmin = ({ modalAdminBuka, setModalAdminBuka, statusAdmin, setStatusAdmin, inputKunciAdmin, setInputKunciAdmin, tanganiLoginAdmin, tabAdmin, setTabAdmin, itemBaru, setItemBaru, idEdit, setIdEdit, batalEdit, tanganiHapusKarya, mulaiEdit, daftarKarya, configSitus, setConfigSitus }) => {
-  const [statusSimpan, setStatusSimpan] = useState('idle');
-  const debouncedConfig = useDebounce(configSitus, 1500);
-  useEffect(() => {
-    if (!statusAdmin) return;
-    const simpanConfig = async () => {
-      try { await setDoc(getDocPath('site_config', 'home'), debouncedConfig, { merge: true }); } 
-      catch (err) { setStatusSimpan('error'); }
-    };
-    simpanConfig();
-  }, [debouncedConfig, statusAdmin]);
-  const simpanConfigManual = async () => {
-      setStatusSimpan('loading');
-      try { await setDoc(getDocPath('site_config', 'home'), configSitus, { merge: true }); setStatusSimpan('success'); setTimeout(() => setStatusSimpan('idle'), 2000); } 
-      catch (err) { setStatusSimpan('error'); setTimeout(() => setStatusSimpan('idle'), 4000); }
-  };
-  const handleSimpanItem = async (e) => {
-    e?.preventDefault();
-    if (!itemBaru.title || !itemBaru.image) return;
-    setStatusSimpan('loading');
-    try {
-      if (idEdit) { await setDoc(getDocPath('portfolio', idEdit), itemBaru, { merge: true }); } 
-      else { await addDoc(getCollectionPath('portfolio'), { ...itemBaru, createdAt: new Date().toISOString() }); }
-      setItemBaru({ title: '', category: 'video', image: '', description: '', youtubeUrl: '' }); setIdEdit(null); setStatusSimpan('success'); setTimeout(() => setStatusSimpan('idle'), 2000);
-    } catch (err) { setStatusSimpan('error'); setTimeout(() => setStatusSimpan('idle'), 4000); }
-  };
+// --- ADMIN PANEL (SUPABASE VERSION) ---
+const PanelAdmin = ({ 
+    modalAdminBuka, setModalAdminBuka, statusAdmin, setStatusAdmin, 
+    inputKunciAdmin, setInputKunciAdmin, tanganiLoginAdmin, 
+    tabAdmin, setTabAdmin, itemBaru, setItemBaru, 
+    idEdit, setIdEdit, batalEdit, 
+    tanganiHapusKarya, handleSimpanItem, // Props baru
+    daftarKarya, configSitus, setConfigSitus, handleSimpanConfig 
+}) => {
+  
   if (!modalAdminBuka) return null;
+  
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 md:p-6 bg-black/95 backdrop-blur-2xl">
       <div className="relative w-full max-w-6xl bg-[#0a0a0a] border border-white/10 rounded-[3rem] shadow-2xl overflow-hidden flex flex-col h-[85vh]">
-        {statusAdmin && (
-          <div className="absolute top-6 right-6 flex items-center gap-3 z-50 bg-black/50 px-4 py-2 rounded-full border border-white/10">
-            {statusSimpan === 'loading' ? <Loader2 className="w-3 h-3 animate-spin" /> : statusSimpan === 'success' ? <Check className="w-3 h-3 text-green-500" /> : statusSimpan === 'error' ? <AlertCircle className="w-3 h-3 text-red-500" /> : null}
-          </div>
-        )}
         {!statusAdmin ? (
           <div className="relative p-10 text-center space-y-8 flex-1 flex flex-col justify-center items-center">
             <button onClick={() => setModalAdminBuka(false)} className="absolute top-8 right-8 text-zinc-500 hover:text-white"><X className="w-5 h-5" /></button>
@@ -540,8 +443,6 @@ const PanelAdmin = ({ modalAdminBuka, setModalAdminBuka, statusAdmin, setStatusA
                              <input type="url" placeholder="https://..." required className="w-full bg-zinc-900 border border-white/10 rounded-2xl px-5 py-4 text-white" value={itemBaru.image} onChange={e => setItemBaru({...itemBaru, image: e.target.value})} />
                         </div>
                       </div>
-
-                      {/* --- UPDATE: INPUT LINK YOUTUBE KHUSUS VIDEO/ANIMASI --- */}
                       {(itemBaru.category === 'video' || itemBaru.category === 'animation') && (
                           <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
                              <label className="text-[10px] font-bold uppercase text-red-500">Link Youtube (Opsional)</label>
@@ -549,10 +450,9 @@ const PanelAdmin = ({ modalAdminBuka, setModalAdminBuka, statusAdmin, setStatusA
                              <p className="text-[9px] text-zinc-600">Jika diisi, video akan diputar saat detail dibuka.</p>
                           </div>
                       )}
-
                       <div className="space-y-2">
-                         <label className="text-[10px] font-bold uppercase text-zinc-600">Deskripsi</label>
-                         <textarea placeholder="Deskripsi" rows="4" className="w-full bg-zinc-900 border border-white/10 rounded-2xl px-5 py-4 text-white outline-none" value={itemBaru.description} onChange={e => setItemBaru({...itemBaru, description: e.target.value})} />
+                          <label className="text-[10px] font-bold uppercase text-zinc-600">Deskripsi</label>
+                          <textarea placeholder="Deskripsi" rows="4" className="w-full bg-zinc-900 border border-white/10 rounded-2xl px-5 py-4 text-white outline-none" value={itemBaru.description} onChange={e => setItemBaru({...itemBaru, description: e.target.value})} />
                       </div>
                       <button type="submit" className="w-full bg-white text-black py-4 rounded-2xl font-black uppercase text-xs hover:bg-red-600 hover:text-white transition-all"> {idEdit ? 'Simpan Perubahan' : 'Publikasikan'}</button>
                       {idEdit && <button onClick={batalEdit} type="button" className="w-full text-zinc-500 text-[10px] uppercase mt-2">Batal Edit</button>}
@@ -564,7 +464,7 @@ const PanelAdmin = ({ modalAdminBuka, setModalAdminBuka, statusAdmin, setStatusA
                         <img src={item.image} className="w-12 h-12 rounded-xl object-cover" alt="" />
                         <div className="flex-1 truncate text-xs font-bold text-white uppercase">{item.title}</div>
                         <div className="flex gap-1">
-                            <button onClick={() => mulaiEdit(item)} className="p-2 text-zinc-500 hover:text-white"><Edit className="w-3.5 h-3.5" /></button>
+                            <button onClick={() => { setItemBaru(item); setIdEdit(item.id); }} className="p-2 text-zinc-500 hover:text-white"><Edit className="w-3.5 h-3.5" /></button>
                             <button onClick={() => tanganiHapusKarya(item.id)} className="p-2 text-zinc-500 hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
                         </div>
                       </div>
@@ -574,11 +474,15 @@ const PanelAdmin = ({ modalAdminBuka, setModalAdminBuka, statusAdmin, setStatusA
               ) : (
                 <div className="max-w-2xl mx-auto space-y-10">
                   <div className="p-6 bg-zinc-900/50 rounded-3xl border border-white/5 space-y-6">
+                      <h4 className="text-white font-bold">Pengaturan Teks Beranda</h4>
+                      <p className="text-zinc-500 text-xs italic">Simpan manual diperlukan untuk mengubah data di database.</p>
+                      
                       <textarea className="w-full bg-black/50 border border-white/10 rounded-xl px-5 py-4 text-white" rows="2" placeholder="Caption Utama" value={configSitus.homeCaption || ''} onChange={e => setConfigSitus({...configSitus, homeCaption: e.target.value})} />
                       <textarea className="w-full bg-black/50 border border-white/10 rounded-xl px-5 py-4 text-white" rows="4" placeholder="Deskripsi Home" value={configSitus.homeDescription || ''} onChange={e => setConfigSitus({...configSitus, homeDescription: e.target.value})} />
                       <input type="url" className="w-full bg-zinc-900 border border-white/10 rounded-xl px-5 py-2 text-white" placeholder="Hero Image URL" value={configSitus.heroImage} onChange={e => setConfigSitus({...configSitus, heroImage: e.target.value})} />
                       <input type="url" className="w-full bg-zinc-900 border border-white/10 rounded-xl px-5 py-2 text-white" placeholder="About Image URL" value={configSitus.aboutImage} onChange={e => setConfigSitus({...configSitus, aboutImage: e.target.value})} />
-                      <button onClick={simpanConfigManual} className="w-full bg-white text-black py-4 rounded-2xl font-black uppercase text-xs hover:bg-red-600 hover:text-white transition-all">Simpan Tampilan</button>
+                      
+                      <button onClick={handleSimpanConfig} className="w-full bg-white text-black py-4 rounded-2xl font-black uppercase text-xs hover:bg-red-600 hover:text-white transition-all">Simpan Tampilan</button>
                   </div>
                 </div>
               )}
@@ -590,6 +494,7 @@ const PanelAdmin = ({ modalAdminBuka, setModalAdminBuka, statusAdmin, setStatusA
   );
 };
 
+// --- MAIN COMPONENT ---
 const App = () => {
   const [halamanAktif, setHalamanAktif] = useState('beranda');
   const [filter, setFilter] = useState('all');
@@ -597,57 +502,119 @@ const App = () => {
   const [modalAdminBuka, setModalAdminBuka] = useState(false);
   const [statusAdmin, setStatusAdmin] = useState(false);
   const [inputKunciAdmin, setInputKunciAdmin] = useState('');
-  const [pengguna, setPengguna] = useState(null);
+  
+  // State AI
   const [modalAiBuka, setModalAiBuka] = useState(false);
   const [kueriAi, setKueriAi] = useState('');
   const [responAi, setResponAi] = useState('');
   const [sedangKonsultasi, setSedangKonsultasi] = useState(false);
+  
+  // State Data (Supabase)
   const [daftarKarya, setDaftarKarya] = useState([]);
-  const [configSitus, setConfigSitus] = useState({ heroImage: '', aboutImage: '', homeCaption: '', homeDescription: '' });
+  const [configSitus, setConfigSitus] = useState({ 
+      heroImage: '', aboutImage: '', homeCaption: '', homeDescription: '' 
+  });
+  
+  // State Form Admin
   const [tabAdmin, setTabAdmin] = useState('portofolio');
-  const [itemBaru, setItemBaru] = useState({ title: '', category: 'video', image: '', description: '' });
+  const [itemBaru, setItemBaru] = useState({ title: '', category: 'video', image: '', description: '', youtubeUrl: '' });
   const [idEdit, setIdEdit] = useState(null);
 
-  useEffect(() => {
-    const initAuth = async () => {
+  // --- FETCH DATA DARI SUPABASE ---
+  const ambilData = useCallback(async () => {
       try {
-        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) { await signInWithCustomToken(auth, __initial_auth_token); } 
-        else { await signInAnonymously(auth); }
-      } catch (error) {}
-    };
-    initAuth();
-    const unsub = onAuthStateChanged(auth, (u) => setPengguna(u));
-    return () => unsub();
+          // Ambil Projects
+          const { data: projects, error: errProjects } = await supabase.from('projects').select('*').order('id', { ascending: false });
+          if (projects) setDaftarKarya(projects);
+          if (errProjects) console.error("Error projects:", errProjects.message);
+
+          // Ambil Config (Jika ada tabel site_config)
+          const { data: config, error: errConfig } = await supabase.from('site_config').select('*').limit(1).single();
+          if (config) setConfigSitus(prev => ({ ...prev, ...config }));
+      } catch (error) {
+          console.log("Supabase fetch error (Normal jika tabel baru):", error.message);
+      }
   }, []);
 
   useEffect(() => {
-    if (!pengguna) return;
-    const unsubPorto = onSnapshot(getCollectionPath('portfolio'), (snap) => setDaftarKarya(snap.docs.map(doc => ({ id: doc.id, ...doc.data() }))));
-    const unsubConfig = onSnapshot(getDocPath('site_config', 'home'), (snap) => { if (snap.exists()) setConfigSitus(prev => ({...prev, ...snap.data()})); });
-    return () => { unsubPorto(); unsubConfig(); };
-  }, [pengguna]);
+    ambilData();
+  }, [ambilData]);
 
+  // --- HANDLERS ---
   const pindahHalaman = (h) => {
     if (h === halamanAktif) return;
     setSedangTransisi(true);
     setTimeout(() => { setHalamanAktif(h); window.scrollTo(0, 0); setSedangTransisi(false); }, 400);
   };
+
   const tanganiLoginAdmin = (e) => {
     e.preventDefault();
     if (inputKunciAdmin === "20810004") { setStatusAdmin(true); setInputKunciAdmin(''); } 
-    else { setInputKunciAdmin(''); }
+    else { alert("Salah sandi!"); setInputKunciAdmin(''); }
   };
+
+  // --- CRUD SUPABASE ---
   const tanganiHapusKarya = async (id) => {
-    if (!pengguna || !statusAdmin) return;
-    try { await deleteDoc(getDocPath('portfolio', id)); } catch (err) {}
+    if (!statusAdmin) return;
+    if(!window.confirm("Yakin hapus karya ini?")) return;
+
+    try {
+        const { error } = await supabase.from('projects').delete().eq('id', id);
+        if (error) throw error;
+        setDaftarKarya(prev => prev.filter(item => item.id !== id));
+    } catch (err) {
+        alert("Gagal hapus: " + err.message);
+    }
   };
-  const mulaiEdit = (item) => { setItemBaru({ title: item.title, category: item.category, image: item.image, description: item.description, youtubeUrl: item.youtubeUrl || '' }); setIdEdit(item.id); };
-  const batalEdit = () => { setItemBaru({ title: '', category: 'video', image: '', description: '' }); setIdEdit(null); };
+
+  const handleSimpanItem = async (e) => {
+    e.preventDefault();
+    if (!itemBaru.title || !itemBaru.image) return;
+
+    try {
+        if (idEdit) {
+            // Update
+            const { error } = await supabase.from('projects').update(itemBaru).eq('id', idEdit);
+            if (error) throw error;
+        } else {
+            // Insert
+            const { error } = await supabase.from('projects').insert([itemBaru]);
+            if (error) throw error;
+        }
+        // Refresh data & Reset form
+        ambilData();
+        setItemBaru({ title: '', category: 'video', image: '', description: '', youtubeUrl: '' });
+        setIdEdit(null);
+        alert("Berhasil disimpan!");
+    } catch (err) {
+        alert("Gagal simpan: " + err.message);
+    }
+  };
+
+  const handleSimpanConfig = async () => {
+     try {
+         // Coba update baris pertama, atau insert jika belum ada
+         const { data, error } = await supabase
+            .from('site_config')
+            .upsert({ id: 1, ...configSitus }); // Asumsi ID 1 selalu dipakai untuk config home
+            
+         if (error) throw error;
+         alert("Tampilan tersimpan!");
+     } catch (err) {
+         alert("Gagal simpan config (Mungkin tabel 'site_config' belum dibuat di Supabase): " + err.message);
+     }
+  };
+
+  const batalEdit = () => { 
+      setItemBaru({ title: '', category: 'video', image: '', description: '', youtubeUrl: '' }); 
+      setIdEdit(null); 
+  };
+
   const tanganiAi = async (e) => {
     e.preventDefault();
     if (!kueriAi.trim()) return;
     setSedangKonsultasi(true); setResponAi(""); 
-    const j = await generateGeminiContent(`Jawab singkat: ${kueriAi}`);
+    const j = await generateGeminiContent(`Jawab singkat (style anak muda visual artist): ${kueriAi}`);
     setResponAi(j); setSedangKonsultasi(false);
   };
 
@@ -663,12 +630,25 @@ const App = () => {
       `}</style>
       <FloatingShapes />
       <Navigasi pindahHalaman={pindahHalaman} halamanAktif={halamanAktif} bukaModalAdmin={setModalAdminBuka} statusAdmin={statusAdmin} />
+      
       <main className={`transition-all duration-500 transform ${sedangTransisi ? 'opacity-0 scale-95 blur-xl' : 'opacity-100 scale-100'}`}>
         {halamanAktif === 'beranda' && <TampilanBeranda configSitus={configSitus} pindahHalaman={pindahHalaman} />}
         {halamanAktif === 'portofolio' && <TampilanPortofolio daftarKarya={daftarKarya} filter={filter} setFilter={setFilter} pindahHalaman={pindahHalaman} />}
         {halamanAktif === 'kontak' && <TampilanKontak modalAiBuka={modalAiBuka} setModalAiBuka={setModalAiBuka} kueriAi={kueriAi} setKueriAi={setKueriAi} tanganiAi={tanganiAi} sedangKonsultasi={sedangKonsultasi} responAi={responAi} />}
       </main>
-      <PanelAdmin modalAdminBuka={modalAdminBuka} setModalAdminBuka={setModalAdminBuka} statusAdmin={statusAdmin} setStatusAdmin={setStatusAdmin} inputKunciAdmin={inputKunciAdmin} setInputKunciAdmin={setInputKunciAdmin} tanganiLoginAdmin={tanganiLoginAdmin} tabAdmin={tabAdmin} setTabAdmin={setTabAdmin} itemBaru={itemBaru} setItemBaru={setItemBaru} idEdit={idEdit} setIdEdit={setIdEdit} batalEdit={batalEdit} tanganiHapusKarya={tanganiHapusKarya} mulaiEdit={mulaiEdit} daftarKarya={daftarKarya} configSitus={configSitus} setConfigSitus={setConfigSitus} />
+
+      <PanelAdmin 
+        modalAdminBuka={modalAdminBuka} setModalAdminBuka={setModalAdminBuka} 
+        statusAdmin={statusAdmin} setStatusAdmin={setStatusAdmin} 
+        inputKunciAdmin={inputKunciAdmin} setInputKunciAdmin={setInputKunciAdmin} 
+        tanganiLoginAdmin={tanganiLoginAdmin} tabAdmin={tabAdmin} setTabAdmin={setTabAdmin} 
+        itemBaru={itemBaru} setItemBaru={setItemBaru} 
+        idEdit={idEdit} setIdEdit={setIdEdit} batalEdit={batalEdit} 
+        tanganiHapusKarya={tanganiHapusKarya} handleSimpanItem={handleSimpanItem}
+        daftarKarya={daftarKarya} 
+        configSitus={configSitus} setConfigSitus={setConfigSitus} handleSimpanConfig={handleSimpanConfig}
+      />
+
       <footer className="py-20 border-t border-white/5 text-center bg-black/50 relative z-10">
         <SectionWrapper>
           <div className="text-2xl font-black italic mb-6 opacity-30">RFX<span className="text-red-600">.</span></div>
