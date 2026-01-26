@@ -59,12 +59,23 @@ const getYoutubeId = (url) => {
   return (match && match[2].length === 11) ? match[2] : null;
 };
 
-const convertGdriveLink = (url) => {
-  if (!url || !url.includes('drive.google.com')) return url;
-  const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-  if (match && match[1]) {
-    return `https://lh3.googleusercontent.com/d/${match[1]}`;
+const convertImageLink = (url) => {
+  if (!url) return url;
+
+  // 1. Cek Google Drive
+  if (url.includes('drive.google.com')) {
+    const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    if (match && match[1]) {
+      return `https://lh3.googleusercontent.com/d/${match[1]}`;
+    }
   }
+
+  // 2. Cek YouTube (Auto-Thumbnail)
+  const ytId = getYoutubeId(url);
+  if (ytId) {
+    return `https://img.youtube.com/vi/${ytId}/maxresdefault.jpg`;
+  }
+
   return url;
 };
 
@@ -459,7 +470,7 @@ const PanelAdmin = ({
                         </div>
                         <div className="space-y-2">
                           <label className="text-[10px] font-bold uppercase text-zinc-600">Link Gambar (Thumbnail)</label>
-                          <input type="url" placeholder="https://..." required className="w-full bg-zinc-900 border border-white/10 rounded-2xl px-5 py-4 text-white" value={itemBaru.image} onChange={e => setItemBaru({ ...itemBaru, image: e.target.value })} onBlur={e => setItemBaru({ ...itemBaru, image: convertGdriveLink(e.target.value) })} />
+                          <input type="url" placeholder="https://..." required className="w-full bg-zinc-900 border border-white/10 rounded-2xl px-5 py-4 text-white" value={itemBaru.image} onChange={e => setItemBaru({ ...itemBaru, image: e.target.value })} onBlur={e => setItemBaru({ ...itemBaru, image: convertImageLink(e.target.value) })} />
                         </div>
                       </div>
                       {(itemBaru.category === 'video' || itemBaru.category === 'animation') && (
@@ -498,8 +509,8 @@ const PanelAdmin = ({
 
                     <textarea className="w-full bg-black/50 border border-white/10 rounded-xl px-5 py-4 text-white" rows="2" placeholder="Caption Utama" value={configSitus.homeCaption || ''} onChange={e => setConfigSitus({ ...configSitus, homeCaption: e.target.value })} />
                     <textarea className="w-full bg-black/50 border border-white/10 rounded-xl px-5 py-4 text-white" rows="4" placeholder="Deskripsi Home" value={configSitus.homeDescription || ''} onChange={e => setConfigSitus({ ...configSitus, homeDescription: e.target.value })} />
-                    <input type="url" className="w-full bg-zinc-900 border border-white/10 rounded-xl px-5 py-2 text-white" placeholder="Hero Image URL" value={configSitus.heroImage} onChange={e => setConfigSitus({ ...configSitus, heroImage: e.target.value })} onBlur={e => setConfigSitus({ ...configSitus, heroImage: convertGdriveLink(e.target.value) })} />
-                    <input type="url" className="w-full bg-zinc-900 border border-white/10 rounded-xl px-5 py-2 text-white" placeholder="About Image URL" value={configSitus.aboutImage} onChange={e => setConfigSitus({ ...configSitus, aboutImage: e.target.value })} onBlur={e => setConfigSitus({ ...configSitus, aboutImage: convertGdriveLink(e.target.value) })} />
+                    <input type="url" className="w-full bg-zinc-900 border border-white/10 rounded-xl px-5 py-2 text-white" placeholder="Hero Image URL" value={configSitus.heroImage} onChange={e => setConfigSitus({ ...configSitus, heroImage: e.target.value })} onBlur={e => setConfigSitus({ ...configSitus, heroImage: convertImageLink(e.target.value) })} />
+                    <input type="url" className="w-full bg-zinc-900 border border-white/10 rounded-xl px-5 py-2 text-white" placeholder="About Image URL" value={configSitus.aboutImage} onChange={e => setConfigSitus({ ...configSitus, aboutImage: e.target.value })} onBlur={e => setConfigSitus({ ...configSitus, aboutImage: convertImageLink(e.target.value) })} />
 
                     <button onClick={handleSimpanConfig} className="w-full bg-white text-black py-4 rounded-2xl font-black uppercase text-xs hover:bg-red-600 hover:text-white transition-all">Simpan Tampilan</button>
                   </div>
