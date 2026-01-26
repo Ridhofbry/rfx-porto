@@ -49,9 +49,31 @@ const generateGeminiContent = async (prompt) => {
 // --- HELPER YOUTUBE ID ---
 const getYoutubeId = (url) => {
   if (!url) return null;
+  // Support format kustom: https://youtube/ID
+  if (url.includes('youtube/') && !url.includes('watch?')) {
+    const parts = url.split('youtube/');
+    return parts[1] ? parts[1].split('?')[0] : null;
+  }
   const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
   const match = url.match(regExp);
   return (match && match[2].length === 11) ? match[2] : null;
+};
+
+const convertGdriveLink = (url) => {
+  if (!url || !url.includes('drive.google.com')) return url;
+  const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  if (match && match[1]) {
+    return `https://drive.google.com/uc?export=view&id=${match[1]}`;
+  }
+  return url;
+};
+
+const convertToCustomYoutube = (url) => {
+  if (!url) return '';
+  // Jika sudah format kustom, biarkan
+  if (url.includes('https://youtube/') && !url.includes('watch?')) return url;
+  const id = getYoutubeId(url);
+  return id ? `https://youtube/${id}` : url;
 };
 
 // --- KOMPONEN BACKGROUND DINAMIS ---
@@ -437,13 +459,13 @@ const PanelAdmin = ({
                         </div>
                         <div className="space-y-2">
                           <label className="text-[10px] font-bold uppercase text-zinc-600">Link Gambar (Thumbnail)</label>
-                          <input type="url" placeholder="https://..." required className="w-full bg-zinc-900 border border-white/10 rounded-2xl px-5 py-4 text-white" value={itemBaru.image} onChange={e => setItemBaru({ ...itemBaru, image: e.target.value })} />
+                          <input type="url" placeholder="https://..." required className="w-full bg-zinc-900 border border-white/10 rounded-2xl px-5 py-4 text-white" value={itemBaru.image} onChange={e => setItemBaru({ ...itemBaru, image: e.target.value })} onBlur={e => setItemBaru({ ...itemBaru, image: convertGdriveLink(e.target.value) })} />
                         </div>
                       </div>
                       {(itemBaru.category === 'video' || itemBaru.category === 'animation') && (
                         <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
                           <label className="text-[10px] font-bold uppercase text-red-500">Link Youtube (Opsional)</label>
-                          <input type="url" placeholder="https://youtube.com/watch?v=..." className="w-full bg-zinc-900 border border-white/10 rounded-2xl px-5 py-4 text-white" value={itemBaru.youtubeUrl || ''} onChange={e => setItemBaru({ ...itemBaru, youtubeUrl: e.target.value })} />
+                          <input type="url" placeholder="https://youtube.com/watch?v=..." className="w-full bg-zinc-900 border border-white/10 rounded-2xl px-5 py-4 text-white" value={itemBaru.youtubeUrl || ''} onChange={e => setItemBaru({ ...itemBaru, youtubeUrl: e.target.value })} onBlur={e => setItemBaru({ ...itemBaru, youtubeUrl: convertToCustomYoutube(e.target.value) })} />
                           <p className="text-[9px] text-zinc-600">Jika diisi, video akan diputar saat detail dibuka.</p>
                         </div>
                       )}
@@ -476,8 +498,8 @@ const PanelAdmin = ({
 
                     <textarea className="w-full bg-black/50 border border-white/10 rounded-xl px-5 py-4 text-white" rows="2" placeholder="Caption Utama" value={configSitus.homeCaption || ''} onChange={e => setConfigSitus({ ...configSitus, homeCaption: e.target.value })} />
                     <textarea className="w-full bg-black/50 border border-white/10 rounded-xl px-5 py-4 text-white" rows="4" placeholder="Deskripsi Home" value={configSitus.homeDescription || ''} onChange={e => setConfigSitus({ ...configSitus, homeDescription: e.target.value })} />
-                    <input type="url" className="w-full bg-zinc-900 border border-white/10 rounded-xl px-5 py-2 text-white" placeholder="Hero Image URL" value={configSitus.heroImage} onChange={e => setConfigSitus({ ...configSitus, heroImage: e.target.value })} />
-                    <input type="url" className="w-full bg-zinc-900 border border-white/10 rounded-xl px-5 py-2 text-white" placeholder="About Image URL" value={configSitus.aboutImage} onChange={e => setConfigSitus({ ...configSitus, aboutImage: e.target.value })} />
+                    <input type="url" className="w-full bg-zinc-900 border border-white/10 rounded-xl px-5 py-2 text-white" placeholder="Hero Image URL" value={configSitus.heroImage} onChange={e => setConfigSitus({ ...configSitus, heroImage: e.target.value })} onBlur={e => setConfigSitus({ ...configSitus, heroImage: convertGdriveLink(e.target.value) })} />
+                    <input type="url" className="w-full bg-zinc-900 border border-white/10 rounded-xl px-5 py-2 text-white" placeholder="About Image URL" value={configSitus.aboutImage} onChange={e => setConfigSitus({ ...configSitus, aboutImage: e.target.value })} onBlur={e => setConfigSitus({ ...configSitus, aboutImage: convertGdriveLink(e.target.value) })} />
 
                     <button onClick={handleSimpanConfig} className="w-full bg-white text-black py-4 rounded-2xl font-black uppercase text-xs hover:bg-red-600 hover:text-white transition-all">Simpan Tampilan</button>
                   </div>
